@@ -1,0 +1,78 @@
+{include file='pub/header'/}
+<title>添加优惠券</title>
+</head>
+<body>
+<div class="page-container">
+	<form class="form form-horizontal" id="active_form" action="" method="post">
+		<input type="hidden" value="{$data.id}" name="id">
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span>优惠券名称：</label>
+			<div class="formControls col-xs-8 col-sm-9">
+				<input type="text" class="input-text" value="{$data.name}" placeholder="" name="name" required>
+			</div>
+		</div>
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span>优惠券抵扣金额：</label>
+			<div class="formControls col-xs-8 col-sm-9">
+				<input type="text" class="input-text" value="{$data.cost}" placeholder="" name="cost" required>
+			</div>
+		</div>
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span>最低消费金额：</label>
+			<div class="formControls col-xs-8 col-sm-9">
+				<input type="text" class="input-text" value="{$data.min_cost}" placeholder="" name="min_cost" required>
+			</div>
+		</div>
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span>开始时间：</label>
+			<div class="formControls col-xs-8 col-sm-9">
+				<input type="text" value="{$data.start_time}" onfocus="WdatePicker({maxDate:'#F{ $dp.$D(\'datemax\')}',dateFmt:'yyyy-MM-dd HH:mm:ss', el:this})" id="datemin" name="start_time" class="input-text Wdate" style="width:auto" required>
+			</div>
+		</div>
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span>结束时间：</label>
+			<div class="formControls col-xs-8 col-sm-9">
+				<input type="text" value="{$data.end_time}" onfocus="WdatePicker({minDate:'#F{ $dp.$D(\'datemin\')}',dateFmt:'yyyy-MM-dd HH:mm:ss', el:this})" id="datemax" name="end_time" class="input-text Wdate" style="width:auto" required>
+			</div>
+		</div>
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span>优惠券类型：</label>
+			<div class="formControls col-xs-8 col-sm-9">
+				<select class="select-box" name="type" required>
+					{foreach $coupon_cat as $cat}
+						<option value="{$cat.id}" {if $cat.id==$data.type}selected{/if}>{$cat.cat_name}</option>
+					{/foreach}
+				</select>
+			</div>
+		</div>
+		<div class="row cl">
+			<div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-2">
+				<button class="btn btn-secondary radius" type="submit"><i class="Hui-iconfont">&#xe632;</i> 保存</button>
+				<button class="btn btn-secondary radius" type="button" onclick="layer_close()"><i class="Hui-iconfont Hui-iconfont-close"></i> 取消</button>
+			</div>
+		</div>
+	</form>
+</div>
+{include file="pub/footer"/}
+<script type="text/javascript">
+$(function(){
+
+    $("#active_form").validate({
+        onkeyup:false,
+        focusCleanup:true,
+        success: 'valid',
+		submitHandler:function(form){
+            $(form).ajaxSubmit(function(res){
+                if(res.code == 1){
+                    parent.location.reload();
+                    layer_close();
+                }else{
+                    layer.alert(res.msg);
+                }
+            });
+		}
+	});
+});
+</script>
+</body>
+</html>

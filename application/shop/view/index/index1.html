@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>易贝通</title>
+</head>
+<body>
+
+<script type="text/javascript" src="__STATIC__/lib/rongcloud/vendor/angular-1.4.8.js"></script>
+<script src="__STATIC__/lib/rongcloud/vendor/plupload.full.min-2.1.1.js"></script>
+<script src="__STATIC__/lib/rongcloud/vendor/qiniu-1.0.17.js"></script>
+<script src="__STATIC__/lib/rongcloud/vendor/jqueryrebox/jquery-rebox-0.1.0.js"></script>
+<script type="text/javascript" src="__STATIC__/lib/rongcloud/js/RongIMWidget.js"></script>
+<link rel="stylesheet" type="text/css" href="__STATIC__/lib/rongcloud/css/RongIMWidget.css"/>
+<link rel="stylesheet" type="text/css" href="__STATIC__/lib/rongcloud/vendor/jqueryrebox/jquery-rebox-0.1.0.css"/>
+<script src="http://cdn.ronghub.com/RongIMLib-2.2.8.min.js"></script>
+<script src="http://cdn.ronghub.com/RongEmoji-2.2.5.min.js"></script>
+<script src="http://cdn.ronghub.com/Libamr-2.2.5.min.js"></script>
+<script src="http://cdn.ronghub.com/RongIMVoice-2.2.5.min.js"></script>
+<div ng-app="demo" ng-controller="main">
+    <rong-widget></rong-widget>
+</div>
+<script>
+    var demo = angular.module("demo", ["RongWebIMWidget"]);
+    var Rong;
+    demo.controller("main", ["$scope", "WebIMWidget", "$http", function ($scope, WebIMWidget, $http) {
+        WebIMWidget.init({
+            appkey: "{:config('rongyunKey')}",
+            token: "{$token}",
+            onSuccess: function () {
+                //初始化完成
+                console.log('初始化完成');
+                Rong = WebIMWidget;
+                WebIMWidget.setUserInfoProvider(function (targetId, obj) {
+                    $http({
+                        method: 'GET',
+                        url: '{:url("Chat/getChatUserInfo")}',
+                        params: {
+                            'userid': targetId
+                        }
+                    }).success(function (user) {
+                        if (user) {
+                            obj.onSuccess({id: user.id, name: user.name, portraitUri: user.img});
+                        } else {
+                            obj.onSuccess({id: targetId, name: "用户：" + targetId});
+                        }
+                    })
+                });
+
+            },
+            onError: function () {
+                //初始化错误
+            },
+            displayConversationList: true,
+            style: {
+                width: 500,
+                height: 600,
+                bottom: 0,
+                right: 0
+            },
+            conversationListPosition: WebIMWidget.EnumConversationListPosition.right,
+            displayMinButton: true,
+            desktopNotification: true,
+            voiceUrl: true
+
+        });
+    }]);
+</script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+{include file='pub/header'/}
+<title></title>
+<body>
+<div class="row cl">
+    <label class="form-label col-xs-4 col-sm-2"></label>
+    <div class="formControls col-xs-8 col-sm-9">
+        <p style="width: 100%; height: 31px; display: block;">
+            <button class="btn btn-secondary" style="margin: 5px; float: right;" type="button" onclick="saveCate()">保存分类</button>
+        </p>
+        {foreach $libCate as $key=>$val}
+        <dl class="permission-list">
+            <dt>
+                <label>
+                    <input type="checkbox" value="{$val['id']}" name="{$val['id']}" {if condition="in_array($val['id'], $selectedIds)"}checked{/if}>{$val['name']}
+                </label>
+            </dt>
+            <dd>
+                {foreach $val['children'] as $childkey=>$childval}
+                <dl class="cl permission-list2" style="display: inline-block">
+                    <dt>
+                        <label class="">
+                            <input type="checkbox" value="{$childval['id']}" name="{$childval['id']}" {if condition="in_array($childval['id'], $selectedIds)"}checked{/if}>{$childval['name']}
+                        </label>
+                    </dt>
+                </dl>
+                {/foreach}
+            </dd>
+        </dl>
+        {/foreach}
+    </div>
+</div>
+{include file='pub/footer'/}
+<script>
+    /**
+     * 保存
+     */
+    function saveCate(){
+        var cateArr = $("input:checked");
+        var idArr = new Array();
+        $.each(cateArr, function(i,v){
+            idArr.push($(v).val());
+        });
+        var idstr = idArr.join(',');
+        layer.load();
+        $.post("{:url('Products/saveCate')}", {idstr:idstr}, function(res){
+            if(res.code == 1){
+                layer.alert('保存成功。', function () {
+                    window.parent.location.reload();
+                });
+            }else{
+                layer.close();
+                layer.alert(res.msg);
+            }
+        });
+    }
+
+    $(function () {
+        $(".permission-list>dt input:checkbox").click(function () {
+            $(this).closest("dl").find("dd input:checkbox").prop("checked", $(this).prop("checked"));
+        });
+        $(".permission-list2>dt input:checkbox").click(function () {
+            var l = $(this).parent().parent().parent().parent().find("input:checked").length;
+            if ($(this).prop("checked")) {
+                $(this).closest("dl").find("dt input:checkbox").prop("checked", true);
+                $(this).parents(".permission-list").find("dt").first().find("input:checkbox").prop("checked", true);
+            } else {
+                if (l == 0) {
+                    $(this).closest('dl').parent('dd').siblings('dt').find("input:checkbox").prop("checked", false);
+                }
+            }
+        });
+    })
+
+</script>
+</body>
+</html>

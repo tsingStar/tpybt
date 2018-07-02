@@ -1,0 +1,76 @@
+﻿{include file='pub/header'/}
+<title>优惠券分类</title>
+</head>
+<body>
+<nav class="breadcrumb">{$breadNav} <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新" ><i class="Hui-iconfont">&#xe68f;</i></a></nav>
+<div class="page-container">
+	<div class="cl pd-5 bg-1 bk-gray mt-20">
+		<span class="l">
+			<a href="javascript:;" onclick="active_add('添加优惠券分类','{:url(\'Marketing/coupon_cat_add\')}','800','500')" class="btn btn-primary radius">
+				<i class="Hui-iconfont">&#xe600;</i> 添加优惠券分类
+			</a>
+		</span>
+	</div>
+	<table class="table table-border table-bordered table-bg">
+		<thead>
+			<tr>
+				<th scope="col" colspan="9">优惠券分类列表</th>
+			</tr>
+			<tr class="text-c">
+				<th width="40">ID</th>
+				<th width="150">分类名称</th>
+				<th width="120">操作</th>
+			</tr>
+		</thead>
+		<tbody>
+		{foreach $list as $v}
+			<tr class="text-c">
+				<td>{$v.id}</td>
+				<td>{$v.cat_name}</td>
+				<td class="td-manage">
+					<a title="编辑" href="javascript:;" onclick="active_edit('编辑分类','{:url(\'Marketing/coupon_cat_edit\', [\'cat_id\'=>$v.id])}','800','500')" class="ml-5" style="text-decoration:none">
+						<i class="Hui-iconfont Hui-iconfont-edit"></i>编辑
+					</a>
+					<a title="删除" href="javascript:;" onclick="active_del(this,'{$v.id}')" class="ml-5" style="text-decoration:none">
+						<i class="Hui-iconfont">&#xe6e2;</i>删除
+					</a>
+				</td>
+			</tr>
+		{/foreach}
+		</tbody>
+	</table>
+</div>
+{include file="pub/footer"/}
+
+<!--请在下方写此页面业务相关的脚本-->
+<script type="text/javascript">
+/*管理员-增加*/
+function active_add(title,url,w,h){
+	layer_show(title,url,w,h);
+}
+/*管理员-删除*/
+function active_del(obj,id){
+	layer.confirm('确认要删除吗？',function(index){
+		$.ajax({
+			type: 'POST',
+			url: '{:url("Marketing/coupon_cat_del")}',
+			data:{id:id},
+			dataType: 'json',
+			success: function(data){
+				$(obj).parents("tr").remove();
+				layer.msg('已删除!',{icon:1,time:1000});
+			},
+			error:function(data) {
+				console.log(data.msg);
+			},
+		});		
+	});
+}
+
+/*管理员-编辑*/
+function active_edit(title,url,w,h){
+	layer_show(title,url,w,h);
+}
+</script>
+</body>
+</html>

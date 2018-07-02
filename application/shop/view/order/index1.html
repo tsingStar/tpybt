@@ -1,0 +1,122 @@
+﻿{include file='pub/header'/}
+<title>订单列表</title>
+</head>
+<body class="pos-r">
+<div>
+    <div class="page-container">
+        <div class="text-c">
+            <form action="" method="get">
+                查询类型：
+                <select name="searchKey" style="width:auto" class="select-box">
+                    <option value="">未选择</option>
+                    <option value="order_no">订单编号</option>
+                    <option value="receive_name">收货人姓名</option>
+                </select>
+                查询条件：
+                <input type="text" name="searchValue" style="width:250px" class="input-text"/>
+                订单状态：
+                <select name="order_status" style="width: auto;" class="select-box">
+                    <option value="">全部</option>
+                    <option value="0">待支付</option>
+                    <option value="1">待配送</option>
+                    <option value="2">待收货</option>
+                    <option value="3">待评价</option>
+                    <option value="4">订单完成</option>
+                    <option value="5">交易关闭</option>
+                </select>
+                订单生成时间：
+                <input type="text" onfocus="WdatePicker({maxDate:'#F{ $dp.$D(datemax)}'})" id="datemin"
+                       name="create_time[start]" class="input-text Wdate" style="width:120px;">-
+                <input type="text" onfocus="WdatePicker({minDate:'#F{ $dp.$D(datemin)}'})" id="datemax"
+                       name="create_time[end]" class="input-text Wdate" style="width:120px;">
+                <button class="btn btn-success" type="submit">
+                    <i class="Hui-iconfont">&#xe665;</i>查询
+                </button>
+            </form>
+        </div>
+        <div class="cl pd-5 bg-1 bk-gray mt-20">
+            <span class="l">
+                <a class="btn btn-primary radius" onclick="downloadOrder()" href="javascript:;">
+                    <i class="Hui-iconfont">&#xe640;</i> 下载订单
+                </a>
+            </span>
+            <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px"
+               href="javascript:location.replace(location.href);" title="刷新">
+                <i class="Hui-iconfont">&#xe68f;</i>
+            </a>
+        </div>
+        <div class="mt-20">
+            <table class="table table-border table-bordered table-bg table-hover table-sort">
+                <thead>
+                <tr class="text-c">
+                    <th width="40">订单编号</th>
+                    <th width="60">下单时间</th>
+                    <th width="100">订单状态</th>
+                    <th width="100">支付方式</th>
+                    <th width="100">总金额</th>
+                    <th width="60">支付总金额</th>
+                    <th width="60">配送/到店自提时间</th>
+                    <th width="60">收货人信息</th>
+                    <th width="100">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{include file='pub/footer'/}
+<script type="text/javascript">
+    $('.table-sort').dataTable({
+        "aaSorting": [[1, "desc"]],//默认第几个排序
+        "bStateSave": false,//状态保存
+        "aoColumnDefs": [
+            {"orderable": false, "aTargets": [8]}// 制定列不参与排序
+        ],
+        'serverSlide':true,
+        'ajax':{
+            url:'{:url("index")}',
+            type: 'POST'
+        },
+        'columns':[
+            { "data": "order_no" },
+            { "data": "create_time" },
+            { "data": order_status("order_status") },
+            { "data": "pay_type" },
+            { "data": "shop_cost" },
+            { "data": "real_cost" },
+            { "data": "dispatch_time" },
+            { "data": "receiver_name" },
+            { "data": opera()}
+        ]
+    });
+
+    function opera(){
+        return "asd";
+    }
+    function order_status(val){
+        console.log(val);
+    }
+
+
+    //下载订单
+    function downloadOrder() {
+        layer_show('下载订单', "{:url('Order/downloadOrder')}", '350', '300');
+    }
+
+    /*产品-编辑*/
+    function product_edit(title, url, id) {
+        var index = layer.open({
+            type: 2,
+            title: title,
+            content: url
+        });
+        layer.full(index);
+    }
+
+
+</script>
+</body>
+</html>

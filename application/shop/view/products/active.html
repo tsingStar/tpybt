@@ -1,0 +1,56 @@
+{include file='pub/header'/}
+<title>活动类型</title>
+</head>
+<body>
+<div class="page-container">
+    <form class="form form-horizontal" id="open_time" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="good_id" value="{$good_id}">
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-2">活动名称：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <select name="active_id">
+                    {foreach $list as $key=>$val}
+                        <option value="{$key}">{$val}</option>
+                    {/foreach}
+                </select>
+            </div>
+        </div>
+        <div class="row cl">
+            <div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-2">
+                <button class="btn btn-secondary radius" type="submit"><i class="Hui-iconfont">&#xe632;</i> 确定
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+{include file="pub/footer"/}
+<script type="text/javascript">
+    $(function () {
+        //填充活动
+        var active_id = "{$active_id}";
+        $("select").find('option[value="'+active_id+'"]').attr('selected', true);
+        $("#open_time").validate({
+            submitHandler: function (form) {
+                $(form).ajaxSubmit({
+                    type: 'post',
+                    url: '{:url("Products/setActive")}',
+                    success: function (res) {
+                        if (1 == res.code) {
+                            layer.msg(res.msg, {icon: 6, time: 1000});
+                            setTimeout(function () {
+                                parent.location.reload();
+                            }, 888);
+                        } else {
+                            layer.msg(res.msg, {icon: 5, time: 1000});
+                        }
+                    }
+                });
+
+            }
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+{include file='pub/header'/}
+    <style type="text/css">
+        body, html, #container {
+            height: 100%;
+            margin: 0px
+        }
+
+        .panel {
+            color: #333;
+            position: absolute;
+            top: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            height: 450px;
+            width: 100%;
+            text-align: center;
+        }
+        .panel ul{
+            overflow-y: scroll;
+            height: 333px;
+        }
+        ul li{
+            list-style: none;
+            line-height: 30px;
+            cursor: pointer;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            background-color: #ccc;
+        }
+        input{
+            width: 375px !important;
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+        .area>div{
+            box-shadow: 3px 4px 3px 0px silver;
+            background-color: #ddf;
+            display: inline-block;
+            height: 380px;
+            width: 40%;
+        }
+    </style>
+    <title>配送小区</title>
+
+</head>
+<body>
+<div class="panel" style="position: relative;">
+    <div style="display: inline-block; margin-bottom: 30px;">
+        <span>
+            查询关键词：<input type="text" class="input-text radius" placeholder="关键词" id="keywords"/><button type="button" class="btn btn-secondary radius" onclick="search()">查询</button>
+        </span>
+    </div>
+    <div class="area" style="position: relative; overflow: hidden;">
+        <div style="float: left; margin-left: 45px;">
+            <p style="font-size: 24px;">推荐小区</p>
+            <ul class="recommendArea">
+                <li>
+
+                </li>
+            </ul>
+        </div>
+        <div style="float: right; margin-right: 45px;">
+            <p style="font-size: 24px;">已选小区</p>
+            <ul class="selectedArea">
+            </ul>
+        </div>
+    </div>
+</div>
+<div style=" position: relative; width: 100%; line-height: 56px;">
+    <button type="button" class="btn btn-secondary radius" style="position: absolute; right: 45px; top: 20px;" onclick="sureArea()">确定</button>
+</div>
+<script type="text/javascript" src="https://webapi.amap.com/maps?v=1.4.2&key={$key}"></script>
+{include file="pub/footer"}
+<script type="text/javascript">
+    var jwd = "{$jwd}";
+    var jwdarr = jwd.split(',');
+    var AMap = AMap.service('AMap.PlaceSearch');
+    //实例化PlaceSearch
+    var placeSearch = new AMap.PlaceSearch({
+        pageSize: 10,
+        pageIndex: 1,
+    });
+    searchArea('小区');
+
+    function searchArea(keywords){
+        placeSearch.searchNearBy(keywords, jwdarr, 500, function(status, result) {
+            //TODO : 解析返回结果,如果设置了map和panel，api将帮助完成点标注和列表
+            if (status === 'complete' && result.info === 'OK') {
+                var areaList = result.poiList.pois;
+                var $li = "";
+                $.each(areaList, function(i, v){
+                    $li += '<li data-location="'+v.location+'" data-name="'+v.name+'">'+v.name+'</li>';
+                });
+                $(".recommendArea").empty().append($li);
+            }
+        });
+
+    }
+    $(function () {
+        $(".recommendArea").on('click', 'li', function () {
+           var li = $(this).clone();
+            addArea(li);
+            $(this).remove();
+        });
+        
+        $(".selectedArea").on('click', 'li', function () {
+            var li = $(this).clone();
+            $(this).remove();
+            delArea(li);
+
+        })
+    })
+    //选中小区
+    function addArea(li){
+        $(li).unbind();
+        var location = $(li).data('location');
+        var selected = $(".selectedArea").find('li');
+        var flag = false;
+        $.each(selected, function (i, v) {
+            if($(v).data('location') == location){
+                flag = true;
+            }
+        });
+        if(flag){
+            return true;
+        }
+        $(".selectedArea").append(li);
+    }
+
+    //删除选中
+    function delArea(li){
+        $(li).unbind();
+        $(".recommendArea").append(li);
+    }
+
+    function search() {
+        var keywords = $.trim($("#keywords").val());
+        if(keywords == ""){
+            keywords = "小区";
+        }
+        searchArea(keywords);
+    }
+
+    function sureArea(){
+        var $lis = $(".selectedArea").find('li');
+        var area = new Array();
+        $.each($lis, function (i,v) {
+            var location = $(v).data('location');
+            var name = $(v).data('name');
+            area.push(location+":"+name);
+        })
+        layer.confirm('确定添加选中小区？', function () {
+            $.post("{:url('ShopInfo/areaAdd')}", {location:area.join('@')}, function (res) {
+                if(res.code == 1){
+                    window.parent.location.reload();
+                    layer_close();
+                }
+            });
+        });
+
+
+    }
+
+</script>
+<script type="text/javascript" src="https://webapi.amap.com/demos/js/liteToolbar.js"></script>
+
+</body>
+</html>

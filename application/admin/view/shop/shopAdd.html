@@ -1,0 +1,95 @@
+{include file="pub/header"/}
+<title>添加店铺</title>
+</head>
+<body>
+<article class="page-container">
+	<form class="form form-horizontal" id="form-admin-add">
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>用户名：</label>
+			<div class="formControls col-xs-8 col-sm-9">
+				<input type="text" class="input-text" value="" placeholder="" id="uname" name="uname">
+			</div>
+		</div>
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>初始密码：</label>
+			<div class="formControls col-xs-8 col-sm-9">
+				<input type="password" class="input-text" autocomplete="off" value="" placeholder="密码" id="password" name="password">
+			</div>
+		</div>
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>确认密码：</label>
+			<div class="formControls col-xs-8 col-sm-9">
+				<input type="password" class="input-text" autocomplete="off"  placeholder="确认新密码" id="password2" name="password2">
+			</div>
+		</div>
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>店铺名称：</label>
+			<div class="formControls col-xs-8 col-sm-9">
+				<input type="text" class="input-text" value="" name="shopname"/>
+			</div>
+		</div>
+		<div class="row cl">
+			<div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-3">
+				<input class="btn btn-primary radius" type="submit" value="&nbsp;&nbsp;提交&nbsp;&nbsp;">
+			</div>
+		</div>
+	</form>
+</article>
+
+{include file="pub/footer"/}
+
+<!--请在下方写此页面业务相关的脚本-->
+<script type="text/javascript">
+$(function(){
+	$("#form-admin-add").validate({
+		rules:{
+			uname:{
+				required:true,
+				remote: '{:url("Shop/checkName")}'
+			},
+			password:{
+				required:true,
+				minlength:6
+			},
+			password2:{
+				required:true,
+				equalTo: "#password"
+			}
+		},
+		messages:{
+			uname:{
+			    required: '用户名不能为空',
+				remote: '用户名已存在'
+			},
+			password:{
+			    required: '密码不能为空',
+				minlength: '最少不能少于6位'
+			}
+		},
+		submitHandler:function(form){
+			$(form).ajaxSubmit({
+				type: 'post',
+				url: "{:url('Shop/shopAdd')}" ,
+				success: function(data){
+				    if(1 == data.code){
+                        var index = parent.layer.getFrameIndex(window.name);
+                        layer.msg(data.msg, {icon:6, time:1000});
+                        setTimeout(function(){
+                            parent.location.reload();
+                            parent.layer.close(index);
+                        }, 1000);
+                    }else{
+				        layer.msg(data.msg, {icon:6, time:1000});
+					}
+                },
+            error: function(XmlHttpRequest, textStatus, errorThrown){
+                    layer.msg('error!',{icon:1,time:1000});
+                }
+        });
+		}
+	});
+});
+</script> 
+<!--/请在上方写此页面业务相关的脚本-->
+</body>
+</html>

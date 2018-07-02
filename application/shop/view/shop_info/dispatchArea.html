@@ -1,0 +1,122 @@
+{include file='pub/header'/}
+<title>小区列表</title>
+</head>
+<body class="pos-r">
+<div>
+    <nav class="breadcrumb">{$breadNav} <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px"
+                                           href="javascript:location.replace(location.href);" title="刷新"><i
+            class="Hui-iconfont">&#xe68f;</i></a></nav>
+    <div class="page-container">
+        <div class="cl pd-5 bg-1 bk-gray mt-20">
+            <span class="l">
+                <a href="javascript:;" onclick="datadel()" class="btn btn-danger radius">
+                    <i class="Hui-iconfont">&#xe6e2;</i> 批量删除
+                </a>
+                <a class="btn btn-primary radius" onclick="area_add('添加小区','{:url(\'areaAdd\')}')" href="javascript:;">
+                    <i class="Hui-iconfont">&#xe600;</i> 添加小区
+                </a>
+            </span>
+        </div>
+        <div class="mt-20">
+            <table class="table table-border table-bordered table-bg table-hover table-sort">
+                <thead>
+                <tr class="text-c">
+                    <th width="40"><input name="" type="checkbox" value=""></th>
+                    <th width="40">ID</th>
+                    <th width="40">小区名称</th>
+                    <th width="60">经度</th>
+                    <th width="100">纬度</th>
+                    <th width="100">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {foreach $areaList as $area}
+                <tr class="text-c va-m">
+                    <td><input name="id" type="checkbox" value="{$area.id}"></td>
+                    <td>{$area.id}</td>
+                    <td>{$area.residential_name}</td>
+                    <td>{$area.lng}</td>
+                    <td>{$area.lat}</td>
+                    <td class="td-manage">
+                        <a style="text-decoration:none" class="ml-5" onClick="area_del(this,'{$area.id}')"
+                           href="javascript:;" title="删除">
+                            <i class="Hui-iconfont">&#xe6e2;删除</i>
+                        </a>
+                    </td>
+                </tr>
+                {/foreach}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{include file='pub/footer'/}
+<script type="text/javascript">
+
+    $(function () {
+        var is_set_location = "{$location}";
+        if(!is_set_location){
+            layer.alert('设置店铺位置后再选择配送小区');
+        }
+    });
+
+
+    $('.table-sort').dataTable({
+        "aaSorting": [[1, "asc"]],//默认第几个排序
+        "bStateSave": true,//状态保存
+        "aoColumnDefs": [
+            {"orderable": false, "aTargets": [0, 5]}// 制定列不参与排序
+        ]
+    });
+    /*产品-添加*/
+    function area_add(title, url) {
+        var index = layer.open({
+            resize: true,
+            type: 2,
+            title: title,
+            content: url,
+            area:['800px','600px']
+        });
+        // layer.full(index);
+    }
+
+    /*小区-删除*/
+    function area_del(obj, id) {
+        layer.confirm('确认要删除吗？', function () {
+            $.post("{:url('ShopInfo/delData')}", {idstr:id}, function (res) {
+                if(res.code == 1){
+                    layer.msg('删除成功');
+                    $(obj).parents('tr').remove();
+                }else{
+                    layer.msg(res.msg);
+                }
+            });
+        });
+    }
+    //删除选中产品
+    function datadel() {
+        var $ids = $("input[name='id']:checked");
+        if($ids.length<1){
+            layer.alert('请选中后在操作');
+            return false;
+        }
+        var idarr = new Array();
+        $.each($ids, function (i, v) {
+            idarr.push($(v).val());
+        });
+        var idStr = idarr.toString();
+        layer.confirm('确认删除选中项？', function () {
+            $.post("{:url('ShopInfo/delData')}", {idstr:idStr}, function (res) {
+                if(res.code == 1){
+                    layer.msg('删除成功');
+                    $ids.parents('tr').remove();
+                }else{
+                    layer.msg(res.msg);
+                }
+            });
+        });
+    }
+</script>
+</body>
+</html>

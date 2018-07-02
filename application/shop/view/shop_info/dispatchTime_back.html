@@ -1,0 +1,54 @@
+{include file='pub/header'/}
+<title>配送时间</title>
+</head>
+<body>
+<div class="page-container">
+    <table class="table table-border table-bordered table-bg table-hover table-sort">
+        <thead>
+        <tr class="text-c">
+            <th width="40">ID</th>
+            <th width="40">开始时间</th>
+            <th width="60">结束时间</th>
+            <th width="100">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+            {foreach $list as $item}
+                <tr>
+                    <td><span>{$item.id}</span><input type="text" class="open_time" value="{$item.id}" style="display: none;"></td>
+                    <td><span>{$item.id}</span><input type="text" class="open_time" value="{$item.id}" style="display: none;"></td>
+                    <td><span>{$item.id}</span><input type="text" class="open_time" value="{$item.id}" style="display: none;"></td>
+                    <td>
+                        <button>编辑</button>
+                        <button>删除</button>
+                    </td>
+                </tr>
+            {/foreach}
+        </tbody>
+    </table>
+</div>
+
+
+{include file="pub/footer"/}
+<script type="text/javascript">
+    $(function () {
+        $("#open_time").validate({
+            submitHandler: function (form) {
+                $(form).ajaxSubmit({
+                    type: 'post',
+                    url: '{:url("ShopInfo/dispatchTime")}',
+                    success: function (res) {
+                        if (1 == res.code) {
+                            layer.msg(res.msg, {icon: 6, time: 1000});
+                        } else {
+                            layer.msg(res.msg, {icon: 5, time: 1000});
+                        }
+                    }
+                });
+
+            }
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+{include file='pub/header'/}
+<title>添加优惠券类型</title>
+</head>
+<body>
+<div class="page-container">
+	<form class="form form-horizontal" id="active_form" action="" method="post">
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span>类型：</label>
+			<div class="formControls col-xs-8 col-sm-9">
+				<input type="text" class="input-text" value="" placeholder="" name="cat_name" required>
+			</div>
+		</div>
+		<div class="row cl">
+			<div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-2">
+				<button class="btn btn-secondary radius" type="submit"><i class="Hui-iconfont">&#xe632;</i> 保存设置</button>
+			</div>
+		</div>
+	</form>
+</div>
+{include file="pub/footer"/}
+<script type="text/javascript">
+$(function(){
+    $("#active_form").validate({
+        onkeyup:false,
+        focusCleanup:true,
+        success: 'valid',
+		submitHandler:function(form){
+            $(form).ajaxSubmit(function(res){
+                if(res.code == 1){
+                    parent.location.reload();
+                    layer_close();
+                }else{
+                    layer.alert(res.msg);
+                }
+            });
+		}
+	});
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+{include file='pub/header'/}
+<title>添加活动</title>
+</head>
+<body>
+<div class="page-container">
+	<form class="form form-horizontal" id="active_form" action="{:url('Marketing/active_add')}" method="post">
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span>活动名称：</label>
+			<div class="formControls col-xs-8 col-sm-9">
+				<input type="text" class="input-text" value="" placeholder="" name="active_name">
+			</div>
+		</div>
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span>图片：</label>
+			<div class="formControls col-xs-8 col-sm-9">
+				<div class="uploader-thum-container">
+					<div id="fileList" class="uploader-list">
+					</div>
+					<div id="filePicker">选择图片</div>
+				</div>
+			</div>
+		</div>
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span>是否开启：</label>
+			<div class="formControls col-xs-8 col-sm-9">
+				<label><input type="radio" name="is_open" value="1" checked/>开启</label>
+				<label><input type="radio" name="is_open" value="0"/>关闭</label>
+			</div>
+		</div>
+		<div class="row cl">
+			<div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-2">
+				<button class="btn btn-secondary radius" type="submit"><i class="Hui-iconfont">&#xe632;</i> 保存设置</button>
+			</div>
+		</div>
+	</form>
+</div>
+{include file="pub/footer"/}
+<script type="text/javascript" src="__STATIC__/lib/uploadImage.js"></script>
+<script type="text/javascript">
+$(function(){
+
+    var config = {
+        auto: true,
+        swf: '__STATIC__/lib/webuploader/0.1.5/Uploader.swf',
+        // 文件接收服务端。
+        server: '{:url("admin/Pub/uploadImg")}',
+        // 选择文件的按钮。可选。
+        // 内部根据当前运行是创建，可能是input元素，也可能是flash.
+        pick: '#filePicker',
+        // 不压缩image, 默认如果是jpeg，文件上传前会压缩一把再上传！
+        resize: false,
+        // 只允许选择图片文件。
+        accept: {
+            title: 'Images',
+            extensions: 'gif,jpg,jpeg,bmp,png',
+            mimeTypes: 'image/*'
+        },
+        fileNumLimit:1
+    };
+    uploadImage($("#fileList"), config, $("#active_form"), 'image', $("#btn-star"));
+
+    $("#active_form").validate({
+		rules:{
+		    day_score: {
+		        required:true
+			},
+			is_open:{
+		        required:true
+			}
+		},
+		messages:{
+            day_score:{
+                required:'活动名称不能为空'
+            },
+            is_open:{
+                required:'请选择是否开启签到送积分'
+            }
+		},
+        onkeyup:false,
+        focusCleanup:true,
+        success: 'valid',
+		submitHandler:function(form){
+            $(form).ajaxSubmit(function(res){
+                if(res.code == 1){
+                    parent.location.reload();
+                    layer_close();
+                }else{
+                    layer.alert(res.msg);
+                }
+            });
+		}
+	});
+});
+</script>
+</body>
+</html>
