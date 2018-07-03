@@ -328,4 +328,18 @@ class Shop extends BaseUser
         $key = db('shop_keywords')->where('shop_id', $shop_id)->value('keywords');
         exit_json(1, '请求成功', $key ? explode(",", $key) : []);
     }
+
+    /**
+     * 获取量贩商品
+     */
+    public function getCombineGoods()
+    {
+        $shop_id = input('shop_id');
+        $page = input('page');
+        $pageNum = input('pageNum');
+        $goods = new Goods();
+        $list = $goods->getGoodsList($shop_id, ['combine_sta'=>1], $page, $pageNum);
+        exit_json(1, '请求成功', $list);
+    }
+
 }

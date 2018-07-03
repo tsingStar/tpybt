@@ -29,6 +29,9 @@ class Pub extends Controller
 
     public function test()
     {
+        echo var_dump((int)1);
+        echo var_dump((int)!1);
+        exit;
         $msg = pushMess();
         exit_json(1, $msg);
     }

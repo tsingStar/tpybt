@@ -137,5 +137,20 @@ class Admin extends BaseController
         }
     }
 
+    /**
+     * 更改管理员状态
+     */
+    public function changeStatus()
+    {
+        $id = input('id');
+        $enable = input('enable');
+        $res = model('admins')->save(['enable'=>$enable], ['id'=>$id]);
+        if($res){
+            exit_json(1, '更新成功');
+        }else{
+            exit_json(1, '更新失败');
+        }
+    }
+
 
 }
