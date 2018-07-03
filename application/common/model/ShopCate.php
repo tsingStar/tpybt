@@ -39,7 +39,7 @@ class ShopCate extends Model
         if ($is_recommend) {
             $where['is_recommend'] = $is_recommend;
         }
-        $cateArr = $this->where($where)->select();
+        $cateArr = $this->where($where)->order('ord_id desc')->select();
         if (!is_array($cateArr)) {
             $cateArr = [];
         }

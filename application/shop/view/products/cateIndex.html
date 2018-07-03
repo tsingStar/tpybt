@@ -24,6 +24,7 @@
                 <th width="80">ID</th>
                 <th width="100">分类名称</th>
                 <th width="100">图片</th>
+                <th width="100">显示权重</th>
                 <th width="100">操作</th>
             </tr>
             </thead>
@@ -35,7 +36,11 @@
                 <td>{$list.name}</td>
                 <td><img height="45px;" class="picture-thumb" src="{$list.img}"
                          onclick="picture_show('{$list.name}', '{$list.img}')"></td>
+                <td>{$list.ord_id}</td>
                 <td class="td-manage">
+                    <a style="text-decoration:none" class="ml-5" onClick="set_order('{$list.id}', '{$list.ord_id}')" href="javascript:;" title="权重设置">
+                        <i class="Hui-iconfont">&#xe61d;</i>权重设置
+                    </a>
                     <a style="text-decoration:none" class="ml-5" onClick="category_child('{$list.name}','{:url(\'Products/cateDet\', [\'parent_id\'=>$list.id])}')" href="javascript:;" title="编辑">
                         <i class="Hui-iconfont">&#xe681;</i>查看子分类
                     </a>
@@ -62,6 +67,26 @@
 {include file="pub/footer"/}
 <script type="text/javascript">
     $('.table-sort').dataTable();
+
+    function set_order(cate_id, default_ord){
+        layer.prompt({
+            title:'请输入排序数值，数值越大显示越靠前',
+            value:default_ord,
+            formType:0
+        }, function (val) {
+            if(val == default_ord){
+
+            }else{
+                $.post("{:url('set_order')}", {cate_id:cate_id, ord_id:val}, function (res) {
+                    if(res.code == 1){
+                        layer.msg('修改成功');
+                        location.reload();
+                    }
+                });
+            }
+            layer.closeAll();
+        })
+    }
 
     //设置首推
     function set_recommend(cate_id, status){

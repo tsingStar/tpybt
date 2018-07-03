@@ -474,7 +474,7 @@ class Products extends ShopBase
         if (input('gno')) {
             $extra['gno'] = input('gno');
         }
-        $where = array_merge(['shop_id' => SHOP_ID, 'active_id'=>['neq', 0]], $extra);
+        $where = array_merge(['shop_id' => SHOP_ID, 'active_id' => ['neq', 0]], $extra);
         $goods_list = model('goods')->where($where)->select();
         $cat_list = model('shop_cate')->where('shop_id', SHOP_ID)->column('name', 'id');
         $active_list = db('active')->where('is_open', 1)->column('active_name', 'id');
@@ -483,7 +483,7 @@ class Products extends ShopBase
         $this->assign('cat_list', $cat_list);
         $this->assign('goodsList', $goods_list);
         return $this->fetch('plist');
-        
+
     }
 
     /**
@@ -509,14 +509,29 @@ class Products extends ShopBase
     {
         $good_id = input('good_id');
         $active_id = input('active_id');
-        $res = model('goods')->save(['active_id'=>$active_id], ['id'=>$good_id]);
-        if($res){
+        $res = model('goods')->save(['active_id' => $active_id], ['id' => $good_id]);
+        if ($res) {
             exit_json();
-        }else{
+        } else {
             exit_json(-1, '操作失败');
         }
     }
 
+    /**
+     * 设置排序
+     */
+    public function set_order()
+    {
+        $cate_id = input('cate_id');
+        $ord_id = input('ord_id');
+        $res = model('shop_cate')->save(['ord_id' => $ord_id], ['id' => $cate_id]);
+        if ($res) {
+            exit_json();
+        } else {
+            exit_json(-1, '操作失败');
+        }
+
+    }
 
 
 }

@@ -41,7 +41,6 @@ class Member extends BaseController
             $where['phone|username'] = $uname;
         }
         $userList = model('user')->where($where)->order('creattime desc')->select();
-        echo model('user')->getLastSql();
         $this->assign('list', $userList);
         return $this->fetch();
     }
@@ -78,6 +77,21 @@ class Member extends BaseController
             $this->assign('filename', date('Y-m-d') . '.xls');
             return $this->fetch('excel');
         }
+        return $this->fetch();
+    }
+
+    /**
+     * 账户变动
+     */
+    public function accountList()
+    {
+        $where = [];
+        $uname = input('uname');
+        if($uname){
+            $where['b.phone|b.username'] = $uname;
+        }
+        $list = model('money_log')->alias('a')->join('user b', 'a.user_id=b.id')->field('a.*, b.username, b.phone')->where($where)->order('create_time desc')->select();
+        $this->assign('list', $list);
         return $this->fetch();
     }
 
