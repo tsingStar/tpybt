@@ -606,10 +606,9 @@ class SixunOpera
      */
     public function asyncVip($user)
     {
-//        $birthday = strtotime()$user['age'];
-//        $sql = "UPDATE t_rm_vip_info SET vip_name=" . iconv('UTF-8', 'GBK', $user['username']) . ", birthday='".$user['']."' WHERE card_id='" . $user['card_id'] . "'";
-//        $this->sqlserver->query($sql);
-
+        $birthday = (date('Y')-$user['age']).'-'.$user['birthday'].' 00:00:00.000';
+        $sql = "UPDATE t_rm_vip_info SET vip_name='" . iconv('UTF-8', 'GBK', $user['username']) . "', birthday='".$birthday."' WHERE card_id='" . $user['card_id'] . "'";
+        $this->sqlserver->query($sql);
     }
 
 }

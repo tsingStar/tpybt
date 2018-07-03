@@ -76,7 +76,7 @@ class User extends BaseUser
             $user = model('user')->where(['id' => USER_ID])->find();
             $rongYun->refresh('vip' . USER_ID, $user['username'], __URL__ . $user['logo']);
             $sixun = new SixunOpera();
-//            $sixun->asyncVip($user);
+            $sixun->asyncVip($user);
             exit_json(1, '更新成功');
         } else {
             exit_json(-1, '保存失败');
