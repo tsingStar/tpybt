@@ -79,6 +79,23 @@ class Order extends BaseUser
         //校验收货地址和配送时间合法性结束
         $shop_cost = 0;  //订单总金额
         foreach ($good_list as $value) {
+            $good_id = $value['good_id'];
+            $good_num = $value['num'];
+            $prop_id = $value['prop_id'];
+            //判断商品是否是抢购商品
+            $act = db('sec_active')->where('good_id', $good_id)->find();
+            if($act){
+                $now = date('Y-m-d H:i:s');
+                if($now<$act['start_time'] || $now>$act['end_time']){
+                    exit_json(-1, '活动商品'.$value['good_name'].'未开始或已过期');
+                }
+            }
+            //判断商品库存是否正常
+            $remain_count = model('goods')->getCount($good_id, $prop_id);
+            if($remain_count<$good_num){
+                exit_json(-1,$value['good_name'].'库存不足');
+            }
+
             $shop_cost += $value['total_price'];
         }
         $shop_cost = sprintf("%.2f", $shop_cost);

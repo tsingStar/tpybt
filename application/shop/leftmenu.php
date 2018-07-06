@@ -33,6 +33,10 @@ $leftmenu = [
                 'navName'=>'店铺公告',
                 'url'=>'ShopInfo/reportList'
             ],
+            [
+                'navName'=>'轮播图设置',
+                'url'=>'ShopInfo/swiperList'
+            ],
         ]
     ],
     [
@@ -60,8 +64,8 @@ $leftmenu = [
                 'url'=>'Products/combine_goods'
             ],
             [
-                'navName'=>'活动商品',
-                'url'=>'Products/active_goods'
+                'navName'=>'限时抢购',
+                'url'=>'Products/sec_active'
             ],
         ]
     ],

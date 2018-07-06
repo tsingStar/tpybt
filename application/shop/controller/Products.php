@@ -14,6 +14,7 @@ use app\common\model\Shop;
 use app\common\model\ShopCate;
 use app\common\model\Goods;
 use app\common\model\SixunOpera;
+use think\Log;
 
 class Products extends ShopBase
 {
@@ -146,8 +147,9 @@ class Products extends ShopBase
         $where = array_merge(['shop_id' => SHOP_ID], $extra);
         $goodsList = model('goods')->where($where)->select();
         $cat_list = model('shop_cate')->where('shop_id', SHOP_ID)->column('name', 'id');
-        $active_list = db('active')->where('is_open', 1)->column('active_name', 'id');
-        $active_list[0] = '普通商品';
+//        $active_list = db('active')->where('is_open', 1)->column('active_name', 'id');
+//        $active_list[0] = '普通商品';
+        $active_list = config('active');
         $this->assign('active_list', $active_list);
         $this->assign('cat_list', $cat_list);
         $this->assign('goodsList', $goodsList);
@@ -431,8 +433,9 @@ class Products extends ShopBase
         $where = array_merge(['shop_id' => SHOP_ID, 'bulk_package' => 1], $extra);
         $goods_list = model('goods')->where($where)->select();
         $cat_list = model('shop_cate')->where('shop_id', SHOP_ID)->column('name', 'id');
-        $active_list = db('active')->where('is_open', 1)->column('active_name', 'id');
-        $active_list[0] = '普通商品';
+//        $active_list = db('active')->where('is_open', 1)->column('active_name', 'id');
+//        $active_list[0] = '普通商品';
+        $active_list = config('active');
         $this->assign('active_list', $active_list);
         $this->assign('cat_list', $cat_list);
         $this->assign('goodsList', $goods_list);
@@ -454,8 +457,9 @@ class Products extends ShopBase
         $where = array_merge(['shop_id' => SHOP_ID, 'combine_sta' => 1], $extra);
         $goods_list = model('goods')->where($where)->select();
         $cat_list = model('shop_cate')->where('shop_id', SHOP_ID)->column('name', 'id');
-        $active_list = db('active')->where('is_open', 1)->column('active_name', 'id');
-        $active_list[0] = '普通商品';
+//        $active_list = db('active')->where('is_open', 1)->column('active_name', 'id');
+//        $active_list[0] = '普通商品';
+        $active_list = config('active');
         $this->assign('active_list', $active_list);
         $this->assign('cat_list', $cat_list);
         $this->assign('goodsList', $goods_list);
@@ -464,6 +468,7 @@ class Products extends ShopBase
 
     /**
      * 活动商品
+     * 方法废弃
      */
     public function active_goods()
     {
@@ -487,14 +492,25 @@ class Products extends ShopBase
     }
 
     /**
+     * 限时抢购
+     */
+    public function sec_active()
+    {
+        $list = db('sec_active')->alias('a')->join('goods b', 'a.good_id=b.id')->field('a.*, b.name')->select();
+        $this->assign('list', $list);
+        return $this->fetch();
+    }
+
+    /**
      * 商品活动类型选择
      */
     public function active()
     {
         $good_id = input('good_id');
-        $list = db('active')->where('is_open', 1)->column('active_name', 'id');
-        $list[0] = "普通商品";
-        ksort($list);
+//        $list = db('active')->where('is_open', 1)->column('active_name', 'id');
+//        $list[0] = "普通商品";
+//        ksort($list);
+        $list = config('active');
         $good = model('goods')->where('id', $good_id)->find();
         $this->assign('list', $list);
         $this->assign('good_id', $good_id);
@@ -509,7 +525,27 @@ class Products extends ShopBase
     {
         $good_id = input('good_id');
         $active_id = input('active_id');
-        $res = model('goods')->save(['active_id' => $active_id], ['id' => $good_id]);
+        $good = model('goods')->where('id', $good_id)->find();
+        $res = $good->save(['active_id' => $active_id]);
+//        var_dump($res);
+//        exit;
+        $active = config('active');
+        array_shift($active);
+        if ($active_id == '0') {
+            foreach ($active as $key => $value) {
+                db("$key")->where('good_id', $good_id)->delete();
+            }
+        } else {
+            $r = db("$active_id")->where('good_id', $good_id)->find();
+            if ($r) {
+                unset($active[$active_id]);
+                foreach ($active as $key => $value) {
+                    db("$key")->where('good_id', $good_id)->delete();
+                }
+            } else {
+                db("$active_id")->insert(['good_id' => $good_id, 'shop_id' => $good['shop_id'], 'gno' => $good['gno']]);
+            }
+        }
         if ($res) {
             exit_json();
         } else {
@@ -531,6 +567,51 @@ class Products extends ShopBase
             exit_json(-1, '操作失败');
         }
 
+    }
+
+    /**
+     * 抢购活动编辑
+     */
+    public function sec_active_edit()
+    {
+        if (request()->isAjax()) {
+            $data = input('post.');
+            $ac = db('sec_active')->where($data)->find();
+            if (!$ac) {
+                $ac = db('sec_active')->where('id', $data['id'])->update([
+                    'start_time' => $data['start_time'],
+                    'end_time' => $data['end_time']
+                ]);
+            }
+            if ($ac) {
+                exit_json();
+            } else {
+                exit_json(-1, '保存失败');
+            }
+        }
+        $active_id = input('active_id');
+        $active = db('sec_active')->alias('a')->join('goods b', 'a.good_id=b.id')->field('a.*, b.name')->where('a.id', $active_id)->find();
+        $this->assign('item', $active);
+        return $this->fetch();
+    }
+
+    /**
+     * 开启活动
+     */
+    public function changeActive()
+    {
+        $active_id = input('active_id');
+        $act = db('sec_active')->where('id', $active_id)->find();
+        if (!$act['start_time'] || !$act['end_time']) {
+            exit_json(0);
+        } else {
+            $res = db('sec_active')->where('id', $active_id)->update(['status' => 1]);
+            if ($res) {
+                exit_json();
+            } else {
+                exit_json(-1);
+            }
+        }
     }
 
 

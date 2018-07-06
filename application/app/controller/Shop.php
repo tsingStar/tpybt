@@ -335,11 +335,51 @@ class Shop extends BaseUser
     public function getCombineGoods()
     {
         $shop_id = input('shop_id');
-        $page = input('page');
-        $pageNum = input('pageNum');
-        $goods = new Goods();
-        $list = $goods->getGoodsList($shop_id, ['combine_sta'=>1], $page, $pageNum);
-        exit_json(1, '请求成功', $list);
+        $list = model('goods')->alias('a')->join('shop_cate b', 'a.cate_id=b.id')->field('a.*, b.name cate_name')->where(['a.shop_id'=>$shop_id, 'a.combine_sta'=>1])->select();
+        $data = [];
+        foreach ($list as $v){
+            $data[$v['cate_name']][] = model('goods')->formatOne($v);
+        }
+        $res = [];
+        foreach ($data as $key=>$val){
+            $res[] = [
+                'cate_name'=>$key,
+                'good_list'=>$val
+            ];
+        }
+        exit_json(1, '请求成功', $res);
+    }
+
+    /**
+     * 获取限时抢购商品
+     */
+    public function getSecGoods()
+    {
+        $shop_id = input('shop_id');
+        $type = input('type');
+        $now = date('Y-m-d H:i:s');
+        if($type == 1){
+            //正在进行中
+            $act_goods = db('sec_active')->alias('a')->join('goods b', 'a.good_id=b.id')->field('a.start_time, a.end_time, a.status act_status, b.*')->where("a.status=1 and a.shop_id=$shop_id and a.start_time<'$now' and a.end_time>'$now'")->select();
+        }elseif ($type == 2){
+            //活动即将开始
+            $act_goods = db('sec_active')->alias('a')->join('goods b', 'a.good_id=b.id')->field('a.start_time, a.end_time, a.status act_status, b.*')->where("a.status=1 and a.shop_id=$shop_id and a.start_time>'$now'")->select();
+        }else{
+            exit_json(-1, '参数错误');
+        }
+        $good = new Goods();
+        $data = [];
+        foreach ($act_goods as $v){
+            $act_ext = [
+                'start_time'=>$v['start_time'],
+                'end_time'=>$v['end_time'],
+                'status'=>$v['act_status']
+            ];
+            $act = $good->formatOne($v);
+            $act['act_ext'] = $act_ext;
+            $data[] = $act;
+        }
+        exit_json(1, '请求成功', $data);
     }
 
 }

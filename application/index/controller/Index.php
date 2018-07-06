@@ -16,6 +16,14 @@ class Index extends Controller
         $rep = model('report')->alias('a')->join('shop b', 'a.shop_id=b.id')->field('a.*, b.shopname')->where('a.id', $r_id)->find();
         $this->assign('rep', $rep);
         return $this->fetch();
+    }
+
+    public function swiper()
+    {
+        $id = input('s_id');
+        $swiper = model('swiper')->alias('a')->join('shop b', 'a.shop_id=b.id')->field('a.*, b.shopname')->where('a.id', $id)->find();
+        $this->assign('rep', $swiper);
+        return $this->fetch('report');
         
     }
 }

@@ -30,18 +30,6 @@
 			</div>
 		</div>
 		<div class="row cl">
-			<label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span>产品类型：</label>
-			<div class="formControls col-xs-8 col-sm-9">
-                <span class="select-box">
-                    <select name="active_id" class="select" id="active">
-                        {foreach $active_list as $key=>$val}
-                        <option value="{$key}">{$val}</option>
-                        {/foreach}
-                    </select>
-                </span>
-			</div>
-		</div>
-		<div class="row cl">
 			<label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span>单价：</label>
 			<div class="formControls col-xs-8 col-sm-9">
 				<input type="text" class="input-text" value="{$product['sale_price']}" placeholder="" name="sale_price">
