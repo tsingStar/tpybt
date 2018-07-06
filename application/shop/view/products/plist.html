@@ -29,6 +29,9 @@
                 <a class="btn btn-primary radius" onclick="updateImage()" href="javascript:;">
                     <i class="Hui-iconfont Hui-iconfont-huanyipi"></i> 更新商品图片
                 </a>
+                <a class="btn btn-primary radius" onclick="addProps()" href="javascript:;">
+                    <i class="Hui-iconfont">&#xe600;</i> 条码添加商品规格
+                </a>
             </span>
             <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px"
                href="javascript:location.replace(location.href);" title="刷新">
@@ -64,19 +67,19 @@
                             <img width="60" class="product-thumb" src="{:explode(',', $good['img'])[0]}">
                         </a>
                     </td>
-                    <td class="text-l">
+                    <td>
                         {$good.name}
                     </td>
-                    <td class="text-l">
+                    <td>
                         {$cat_list[$good.cate_id]}
                     </td>
-                    <td class="text-l">
+                    <td>
                         {$good.sale_price}
                     </td>
-                    <td class="text-l">
+                    <td>
                         {$good.active_price}
                     </td>
-                    <td class="text-l">
+                    <td>
                         {$good.goodattr}
                     </td>
                     <td class="is_recommend">
@@ -295,6 +298,41 @@
                 }
             });
         });
+    }
+
+    function addProps(){
+        layer.open({
+            title: '添加规格',
+            type: 1,
+            area: ['600px','450px'],
+            content: '<div style="margin-top: 25px; text-align: center; width: 100%; height: 95%;">' +
+            '<textarea id="props" style="width: 80%; height: 75%;" autofocus="autofocus"></textarea>' +
+            '<div style="text-align: right; width: 100%; margin-top: 25px;">' +
+            '<span style="font-size: 13px; color:red; margin-right: 15px;">多个规格条码以回车分隔开录入</span>' +
+            '<button onclick="sureProp()" class="btn btn-primary radius">添加</button></div></div>'
+        })
+    }
+
+    function sureProp(){
+        var props = $.trim($("#props").val());
+        if("" == props){
+            layer.msg('条码为空');
+            return false;
+        }else{
+            layer.confirm('确定添加规格条码为'+props+"?", function(){
+                layer.load();
+                $.post("{:url('Products/addProps')}", {props:props}, function(res){
+                    if(res.code == -1){
+                        layer.alert('添加失败', function(){
+                            layer.closeAll();
+                        });
+                    }
+                    layer.alert('成功添加'+res.msg+'个条码', function(){
+                        layer.closeAll();
+                    });
+                }, 'json');
+            });
+        }
     }
 </script>
 </body>

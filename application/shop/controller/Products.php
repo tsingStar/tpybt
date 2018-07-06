@@ -614,5 +614,47 @@ class Products extends ShopBase
         }
     }
 
+    /**
+     * 添加产品规格
+     */
+    function addProps(){
+        $props = input('props');
+        $propArr = explode("\n", $props);
+        $count = 0;
+        $flag = true;
+        foreach ($propArr as $p) {
+            $valid = substr($p, 0, 2);
+            if($valid != 22){
+                continue;
+            }
+            $gno = substr($p, 2, 5);
+            if($gno == ''){
+                continue;
+            }
+            $price = (double)substr($p, -6);
+            $good = model('goods')->where('gno', $gno)->where('shop_id', SHOP_ID)->find();
+            if(!$good){
+                continue;
+            }
+            $weight = round($price/$good['bcost']);
+            $price = floor($price/10);
+            $price = sprintf('%.2f', $price/100);
+            $discount = model('shop')->where('id', SHOP_ID)->value('discount');
+            $active_price = $price*$discount;
+            $res = model('goods_prop')->save(['good_id'=>$good['id'], 'prop_name'=>$weight.'g', 'prop_price'=>$price, 'num'=>1, 'prop_no'=>$p, 'prop_active_price'=>$active_price]);
+            if($res){
+                model('goods')->save(['have_det'=>1], ['id'=>$good['id']]);
+                $count++;
+            }else{
+                $flag = false;
+            }
+        }
+        if($flag){
+            exit_json(1, $count);
+        }else{
+            exit_json(-1, '操作失败');
+        }
+    }
+
 
 }
