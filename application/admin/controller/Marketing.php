@@ -320,5 +320,16 @@ class Marketing extends BaseController
         }
     }
 
+    /**
+     * 加盟我们
+     */
+    public function join_us()
+    {
+        $list = model('join_us')->order('status, create_time desc')->select();
+        $this->assign('list', $list);
+        $this->assign('status', ['0'=>'未处理', '1'=>'已处理']);
+        return $this->fetch();
+    }
+
 
 }

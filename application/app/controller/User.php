@@ -404,6 +404,7 @@ class User extends BaseUser
             $temp['order_no'] = $value['order_no'];
             $temp['desc'] = $value['desc'];
             $temp['create_time'] = $value['create_time'];
+            $temp['month'] = date('m', strtotime($value['create_time']));
             $temp['money'] = '￥ '.$value['money'];
             $temp['type'] = $value['type'];
             $moneyAll = MoneyLogMonth::getMonthMoney(date('Y-m', strtotime($value['create_time'])), USER_ID);
@@ -459,5 +460,19 @@ class User extends BaseUser
         exit_json(1, '请求成功', $list);
     }
 
+    /**
+     * 获取联系我们
+     */
+    public function getContact()
+    {
+        $shop_id = input('shop_id');
+        $shop_phone = model('shop')->where('id', $shop_id)->value('phone');
+        $data = db('web_contact_us')->find();
+        exit_json(1, '请求成功', [
+            'phone'=>$data['telephone'],
+            'complaints_phone'=>$data['complaints_phone'],
+            'shop_phone'=>$shop_phone
+        ]);
+    }
 
 }

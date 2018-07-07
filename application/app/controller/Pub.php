@@ -24,16 +24,23 @@ class Pub extends Controller
     public function __construct(Request $request = null)
     {
         parent::__construct($request);
-        Log::error($_POST);
     }
 
     public function test()
     {
-        echo var_dump((int)1);
-        echo var_dump((int)!1);
-        exit;
-        $msg = pushMess();
-        exit_json(1, $msg);
+        ignore_user_abort(1);
+        set_time_limit(0);
+        $i = 1;
+        while (true){
+//            $msg = pushMess();
+            sleep('5');
+            if($i>20){
+                break;
+            }
+            $i++;
+            Log::error("$i");
+        }
+        exit();
     }
 
     public function testOrder()

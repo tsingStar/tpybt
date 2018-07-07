@@ -338,7 +338,6 @@ class Products extends ShopBase
             if (isset($data['prop'])) {
                 $prop = $data['prop'];
                 foreach ($prop as $k => $pr) {
-                    //TODO 添加规格处理
                     foreach ($pr as $k1 => $v1) {
                         $p[$k1][$k] = $v1;
                     }
@@ -377,6 +376,10 @@ class Products extends ShopBase
         $this->assign('active_list', $active_list);
         $this->assign('prop', $prop);
         $this->assign('pid', $pid);
+        if(count($prop)){
+            //重置商品规格属性
+            $product['have_det'] = 1;
+        }
         $this->assign('product', $product);
         $this->assign('cateTree', $cateTree);
         return $this->fetch();

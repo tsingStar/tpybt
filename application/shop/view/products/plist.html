@@ -52,6 +52,7 @@
                     <th width="100">销售单价</th>
                     <th width="60">单位</th>
                     <th width="60">是否首页推荐</th>
+                    <!--<th width="60">是否为积分商品</th>-->
                     <th width="60">商品所属类别</th>
                     <th width="100">操作</th>
                 </tr>
@@ -84,11 +85,20 @@
                     </td>
                     <td class="is_recommend">
                         {if $good.is_recommend == 1}
-                            是
-                        {else}
-                            否
+                        是
+                        {else/}
+                        否
                         {/if}
                     </td>
+                    <!--<td>-->
+                        <!--<a href="javascript:;" onclick="changeScore(this, '{$good.is_score}')" class="btn radius btn-primary">-->
+                            <!--{if $good.is_score == 1}-->
+                            <!--是-->
+                            <!--{else/}-->
+                            <!--否-->
+                            <!--{/if}-->
+                        <!--</a>-->
+                    <!--</td>-->
                     <td>
                         {$active_list[$good.active_id]}
                     </td>
@@ -143,6 +153,10 @@
             {"orderable": false, "aTargets": [0, 11]}// 制定列不参与排序
         ]
     });
+    //设置积分兑换商品
+    function changeScore() {
+        
+    }
     // 设置商品活动类型
     function set_active(good_id){
         layer_show('活动类型', '{:url("Products/active")}?good_id='+good_id, '300', '180');
