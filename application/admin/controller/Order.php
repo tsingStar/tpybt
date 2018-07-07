@@ -1,19 +1,16 @@
 <?php
 /**
- * 订单控制器
+ * 平台订单
  * Created by PhpStorm.
  * User: Administrator
- * Date: 2018.6.5
- * Time: 13:43
+ * Date: 2018-07-07
+ * Time: 15:21
  */
 
-namespace app\shop\controller;
+namespace app\admin\controller;
 
 
-use app\common\model\SixunOpera;
-use think\Log;
-
-class Order extends ShopBase
+class Order extends BaseController
 {
     protected function _initialize()
     {
@@ -21,18 +18,19 @@ class Order extends ShopBase
     }
 
     /**
-     * 订单列表
-     * @return mixed
-     * @throws \think\db\exception\DataNotFoundException
-     * @throws \think\db\exception\ModelNotFoundException
-     * @throws \think\exception\DbException
+     * 全部订单
      */
-    public function index()
+    public function orderList()
     {
-        if(request()->isPost()){
+//        $order = model('order');
+//        $where = [];
+//        $where['shop_id'] = SHOP_ID;
+//        $where['create_time'] = ['gt', strtotime(date('Y-m-d'))];
+//        $order_list = $order->where($where)->select();
+//        $this->assign('list', $order_list);
+        if (request()->isPost()) {
             $order = model('order');
             $where = [];
-            $where['a.shop_id'] = SHOP_ID;
             if (input('searchKey') && input('searchValue')) {
                 $where[input('a.searchKey')] = input('searchValue');
             }
@@ -54,7 +52,7 @@ class Order extends ShopBase
             }
             $order_list = $order->alias('a')->join('user b', 'a.user_id=b.id')->field('a.*, b.username, b.phone')->where($where)->select();
             $this->assign('list', $order_list);
-            return $this->fetch('index');
+            return $this->fetch('orderList');
         }
         $this->assign('list', []);
         return $this->fetch();
@@ -67,7 +65,6 @@ class Order extends ShopBase
     {
         $order = model('order');
         $where = [];
-        $where['a.shop_id'] = SHOP_ID;
         if (input('searchKey') && input('searchValue')) {
             $where[input('a.searchKey')] = input('searchValue');
         }
@@ -87,9 +84,9 @@ class Order extends ShopBase
                 ['elt', strtotime(input('end_time') . '+1 day')]
             ];
         }
-        $order_list = $order->alias('a')->join('user b', 'a.user_id=b.id')->field('a.*, b.username, b.phone')->where($where)->select();
+        $order_list = $order->alias('a')->join('user b', 'a.user_id=b.id')->field('a.*, b.username, b.phone')->where($where)->order('a.create_time desc')->select();
         $this->assign('list', $order_list);
-        return $this->fetch('index');
+        return $this->fetch('orderList');
     }
 
     /**
@@ -107,86 +104,8 @@ class Order extends ShopBase
         return $this->fetch();
     }
 
-    /**
-     * 待配送订单
-     * @return mixed
-     * @throws \think\db\exception\DataNotFoundException
-     * @throws \think\db\exception\ModelNotFoundException
-     * @throws \think\exception\DbException
-     */
-    public function dispatchList()
-    {
-        $where = [];
-        $where['a.order_status'] = 1;
-        $where['a.is_send'] = 0;
-        $where['a.shop_id'] = SHOP_ID;
-        $order_list = model('order')->alias('a')->join('user b', 'a.user_id=b.id')->field('a.*, b.username, b.phone')->where($where)->order('a.create_time desc')->select();
-        $order_pre = model('order')->alias('a')->where($where)->order('id desc')->value('id');
-        $this->assign('order_pre', $order_pre);
-        $this->assign('list', $order_list);
-        return $this->fetch('dispatch_list');
-    }
 
-    /**
-     * 获取是否有新订单
-     */
-    public function getNewOrder()
-    {
-        $order_id = input('order_id');
-        $where = [];
-        $where['order_status'] = 1;
-        $where['is_send'] = 0;
-        $where['shop_id'] = SHOP_ID;
-        $id = model('order')->where($where)->order('id desc')->value('id');
-        if ($id > $order_id) {
-            exit_json();
-        } else {
-            exit_json(-1);
-        }
 
-    }
-
-    /**
-     * 退款申请订单
-     * @return mixed
-     */
-    public function refundList()
-    {
-        try{
-            $orderList = model('order')->alias('a')->join('order_refund b', 'a.id=b.order_id')->join('user c', 'a.user_id=c.id')->field('a.*, b.order_id, b.refund_money, b.create_time refund_time, b.remarks, b.status, c.username, c.phone')->where([
-                'a.shop_id' => SHOP_ID,
-                'a.is_apply_refund' => 1,
-                'b.status' => 0
-            ])->select();
-        } catch (\Exception $e){
-            $orderList = [];
-        }
-        $this->assign('list', $orderList);
-        return $this->fetch('refundList');
-    }
-
-    /**
-     * 确认退款
-     */
-    public function order_refund()
-    {
-        $order_no = input('order_no');
-        $status = input('status');
-        $order_refund = model('order_refund')->where('order_no', $order_no)->find();
-        if ($status == 1) {
-            //确认退款
-            $order_refund->save(['status' => 1, 'money' => input('money')]);
-            $order_refund->refundOrder($order_no);
-            exit_json(1, '操作成功');
-        } elseif ($status == 0) {
-            //拒绝退款
-            $order_refund->save(['status' => 2, 'reason' => input('reason')]);
-            model('order')->save(['is_apply_refund' => 3], ['order_no' => $order_no]);
-            exit_json(1, '操作成功');
-        } else {
-            exit_json(-1, '参数错误');
-        }
-    }
 
     /**
      * 下载订单
@@ -196,13 +115,10 @@ class Order extends ShopBase
         if (request()->isPost()) {
             $start_time = input('start_time');
             $end_time = input('end_time');
-            $order_status = input('order_status');
-
             $where['create_time'] = [
                 ['egt', strtotime($start_time)],
                 ['elt', strtotime($end_time . "+1 day")]
             ];
-            $where['order_status'] = $order_status;
             $order_list = model('order')->where($where)->select();
             $this->assign('list', $order_list);
             $this->assign('filename', date('Y-m-d') . '.xls');
@@ -263,6 +179,31 @@ class Order extends ShopBase
         $order['order_det'] = $order_det;
         $this->assign('order', $order);
         return $this->fetch();
+    }
+
+    /**
+     * 当日订单
+     */
+    public function todayList()
+    {
+
+        $order = model('order');
+        $where = [];
+        if (input('searchKey') && input('searchValue')) {
+            $where[input('a.searchKey')] = input('searchValue');
+        }
+
+        if (input('order_status') !== "") {
+            $where['a.order_status'] = input('order_status');
+        }
+        $where['a.create_time'] = [
+            ['egt', strtotime(date('Y-m-d'))],
+            ['elt', strtotime(date('Y-m-d') . '+1 day')]
+        ];
+        $order_list = $order->alias('a')->join('user b', 'a.user_id=b.id')->field('a.*, b.username, b.phone')->where($where)->select();
+        $this->assign('list', $order_list);
+        $this->assign('is_show', 1);
+        return $this->fetch('orderList');
     }
 
 
