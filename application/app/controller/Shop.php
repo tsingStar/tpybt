@@ -13,6 +13,7 @@ namespace app\app\controller;
 use app\common\model\Goods;
 use app\common\model\ShopCate;
 use app\common\model\Swiper;
+use think\Log;
 
 class Shop extends BaseUser
 {
@@ -380,6 +381,63 @@ class Shop extends BaseUser
             $data[] = $act;
         }
         exit_json(1, '请求成功', $data);
+    }
+
+    /**
+     * 获取积分兑换商品
+     */
+    public function getScoreGood()
+    {
+        $shop_id = input('shop_id');
+        $gift = db('gift')->where('shop_id', $shop_id)->field('id, good_name, good_price, score, num, image')->select();
+        exit_json(1, '请求成功', $gift);
+    }
+
+    /**
+     * 兑换商品
+     */
+    public function makeScoreOrder()
+    {
+        $good_id = input('good_id');
+        $address = input('address');
+        $name = input('name');
+        $telephone = input('telephone');
+        $remarks = input('remarks');
+        $gift = db('gift')->where('id', $good_id)->find();
+        if($gift['num']<=0){
+            exit_json(-1, '库存不足');
+        }else{
+            model('score_log')->startTrans();
+            model('order_score')->startTrans();
+            model('user')->startTrans();
+            try{
+                $user = model('user')->where('id', USER_ID)->find();
+                if($user['score']<$gift['score']){
+                    exit_json(-1, '积分不足');
+                }else{
+                    $res1 = $user->setDec('score', $gift['score']);
+                    model('score_log')->save(['score'=>$gift['score'], 'type'=>2, 'user_id'=>USER_ID, 'desc'=>'积分兑换商品']);
+                }
+                $res = model('order_score')->save(['good_id'=>$good_id, 'address'=>$address, 'name'=>$name, 'telephone'=>$telephone,'remarks'=>$remarks, 'user_id'=>USER_ID, 'shop_id'=>$gift['shop_id']]);
+            }catch (\Exception $e){
+                model('score_log')->rollback();
+                model('order_score')->rollback();
+                model('user')->rollback();
+                Log::error('积分兑换'.$e->getMessage());
+            }
+            if($res && $res1){
+                db('gift')->where('id', $good_id)->setDec('num', 1);
+                model('score_log')->commit();
+                model('order_score')->commit();
+                model('user')->commit();
+                exit_json();
+            }else{
+                model('score_log')->rollback();
+                model('order_score')->rollback();
+                model('user')->rollback();
+                exit_json(-1, '操作失败');
+            }
+        }
     }
 
 }

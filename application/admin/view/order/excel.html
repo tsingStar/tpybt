@@ -17,6 +17,9 @@
             <th>优惠券抵扣</th>
             <th>实收金额</th>
             <th>创建时间</th>
+            <th>申请退款时间</th>
+            <th>退款状态</th>
+            <th>退款金额</th>
         </tr>
     </thead>
     <tbody>
@@ -31,6 +34,15 @@
             <td>{$item.coupon_fee}</td>
             <td>{$item.real_cost}</td>
             <td>{$item.create_time}</td>
+            <td>{$item.refund_time?date('Y-m-d H:i:s', $item.refund_time):""}</td>
+            <td>
+                {if $item.refund_status == 1}
+                已处理
+                {else/}
+                未处理
+                {/if}
+            </td>
+            <td>{$item.refund_money}</td>
         </tr>
         {/foreach}
     </tbody>

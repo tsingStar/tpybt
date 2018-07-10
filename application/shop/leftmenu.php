@@ -67,6 +67,10 @@ $leftmenu = [
                 'navName'=>'限时抢购',
                 'url'=>'Products/sec_active'
             ],
+            [
+                'navName'=>'积分兑换商品',
+                'url'=>'Products/score_goods'
+            ],
         ]
     ],
     [
@@ -83,7 +87,11 @@ $leftmenu = [
             [
                 'navName'=>'退款申请订单',
                 'url'=>'Order/refundList'
-            ]
+            ],
+            [
+                'navName'=>'积分兑换订单',
+                'url'=>'Order/scoreList'
+            ],
         ]
     ],
 //    [
@@ -99,30 +107,30 @@ $leftmenu = [
 //            ],
 //        ]
 //    ],
-    [
-        'navName'=>'账单管理',
-        'navChild'=>[
-            [
-                'navName'=>'日销售统计',
-                'url'=>''
-            ],
-            [
-                'navName'=>'申请提现',
-                'url'=>''
-            ],
-            [
-                'navName'=>'提现记录',
-                'url'=>''
-            ],
-        ]
-    ],
-    [
-        'navName'=>'监控设备管理',
-        'navChild'=>[
-            [
-                'navName'=>'日销售统计',
-                'url'=>''
-            ],
-        ]
-    ],
+//    [
+//        'navName'=>'账单管理',
+//        'navChild'=>[
+//            [
+//                'navName'=>'日销售统计',
+//                'url'=>''
+//            ],
+//            [
+//                'navName'=>'申请提现',
+//                'url'=>''
+//            ],
+//            [
+//                'navName'=>'提现记录',
+//                'url'=>''
+//            ],
+//        ]
+//    ],
+//    [
+//        'navName'=>'监控设备管理',
+//        'navChild'=>[
+//            [
+//                'navName'=>'日销售统计',
+//                'url'=>''
+//            ],
+//        ]
+//    ],
 ];

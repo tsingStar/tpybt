@@ -265,5 +265,33 @@ class Order extends ShopBase
         return $this->fetch();
     }
 
+    /**
+     * 积分兑换订单
+     */
+    public function scoreList()
+    {
+        $list = model('order_score')->alias('a')->join('gift b', 'a.good_id=b.id')->join('user c', 'a.user_id=c.id')->field('a.*, b.good_name, c.username')->where('a.shop_id', SHOP_ID)->select();
+        $this->assign('list', $list);
+        return $this->fetch();
+    }
+
+    /**
+     * 确认收获
+     */
+    public function sure_order_score()
+    {
+        $order_id = input('order_id');
+        $order = model('order_score')->where('id', $order_id)->find();
+        if ($order['status'] == 0) {
+            $res = $order->save(['status' => 1]);
+            if ($res) {
+                exit_json();
+            } else {
+                exit_json(-1, '操作失败');
+            }
+        } else {
+            exit_json(-1, '订单已处理');
+        }
+    }
 
 }

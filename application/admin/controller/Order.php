@@ -115,11 +115,12 @@ class Order extends BaseController
         if (request()->isPost()) {
             $start_time = input('start_time');
             $end_time = input('end_time');
-            $where['create_time'] = [
+            $where['a.create_time'] = [
                 ['egt', strtotime($start_time)],
                 ['elt', strtotime($end_time . "+1 day")]
             ];
-            $order_list = model('order')->where($where)->select();
+            $where['a.pay_status'] = 1;
+            $order_list = model('order')->alias('a')->join('order_refund b', 'a.id=b.order_id', 'left')->field('a.*, b.money refund_money, b.create_time refund_time, b.status refund_status')->where($where)->select();
             $this->assign('list', $order_list);
             $this->assign('filename', date('Y-m-d') . '.xls');
             return $this->fetch('excel');

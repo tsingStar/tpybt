@@ -611,4 +611,13 @@ class SixunOpera
         $this->sqlserver->query($sql);
     }
 
+    /**
+     * 获取积分兑换商品
+     */
+    public function getGift()
+    {
+        $sql = 'select a.*, b.item_name, b.sale_price from t_rm_vip_good a left join t_bd_item_info b on a.vg_no=b.item_no';
+        return $this->sqlserver->getarr($sql);
+    }
+
 }

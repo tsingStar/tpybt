@@ -1,0 +1,75 @@
+﻿{include file='pub/header'/}
+</head>
+<body class="pos-r">
+<div>
+    <div class="page-container">
+        <div class="cl pd-5 bg-1 bk-gray mt-20">
+            <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px"
+               href="javascript:location.replace(location.href);" title="刷新">
+                <i class="Hui-iconfont">&#xe68f;</i>
+            </a>
+        </div>
+        <div class="mt-20">
+            <table class="table table-border table-bordered table-bg table-hover table-sort">
+                <thead>
+                <tr class="text-c">
+                    <th width="40">商品货号</th>
+                    <th width="100">产品名称</th>
+                    <th width="100">单价</th>
+                    <th width="100">积分</th>
+                    <th width="100">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {foreach $list as $good}
+                <tr class="text-c va-m">
+                    <td>{$good.vg_no}</td>
+                    <td>
+                        {$good.item_name}
+                    </td>
+                    <td>
+                        {$good.sale_price}
+                    </td>
+                    <td>
+                        {$good.vg_vip_num}
+                    </td>
+                    <td class="td-manage">
+                        <input type="hidden" value='{:json_encode($good)}'/>
+                        {if $good.status==1}
+                        <a style="text-decoration:none" class="ml-5" onClick="good_del(0,this)"
+                           href="javascript:;" title="取消">
+                            <i class="Hui-iconfont Hui-iconfont-del2"></i>取消
+                        </a>
+                        {else/}
+                        <a style="text-decoration:none" class="ml-5" onClick="good_del(1,this)"
+                           href="javascript:;" title="添加">
+                            <i class="Hui-iconfont Hui-iconfont-add"></i>添加
+                        </a>
+                        {/if}
+                    </td>
+                </tr>
+                {/foreach}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{include file='pub/footer'/}
+<script type="text/javascript">
+    function good_del(status, o){
+        var data = $(o).siblings('input').val();
+        layer.confirm('确认操作？', function () {
+            $.post("{:url('oper_gift')}", {status:status, data:data}, function (res) {
+              if(res.code == 1){
+                  location.reload();
+              }else{
+                  layer.msg('操作失败');
+              }
+            });
+        });
+    }
+
+</script>
+</body>
+</html>

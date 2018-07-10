@@ -376,7 +376,7 @@ class Products extends ShopBase
         $this->assign('active_list', $active_list);
         $this->assign('prop', $prop);
         $this->assign('pid', $pid);
-        if(count($prop)){
+        if (count($prop)) {
             //重置商品规格属性
             $product['have_det'] = 1;
         }
@@ -620,43 +620,155 @@ class Products extends ShopBase
     /**
      * 添加产品规格
      */
-    function addProps(){
+    function addProps()
+    {
         $props = input('props');
         $propArr = explode("\n", $props);
         $count = 0;
         $flag = true;
         foreach ($propArr as $p) {
             $valid = substr($p, 0, 2);
-            if($valid != 22){
+            if ($valid != 22) {
                 continue;
             }
             $gno = substr($p, 2, 5);
-            if($gno == ''){
+            if ($gno == '') {
                 continue;
             }
             $price = (double)substr($p, -6);
             $good = model('goods')->where('gno', $gno)->where('shop_id', SHOP_ID)->find();
-            if(!$good){
+            if (!$good) {
                 continue;
             }
-            $weight = round($price/$good['bcost']);
-            $price = floor($price/10);
-            $price = sprintf('%.2f', $price/100);
+            $weight = round($price / $good['bcost']);
+            $price = floor($price / 10);
+            $price = sprintf('%.2f', $price / 100);
             $discount = model('shop')->where('id', SHOP_ID)->value('discount');
-            $active_price = $price*$discount;
-            $res = model('goods_prop')->save(['good_id'=>$good['id'], 'prop_name'=>$weight.'g', 'prop_price'=>$price, 'num'=>1, 'prop_no'=>$p, 'prop_active_price'=>$active_price]);
-            if($res){
-                model('goods')->save(['have_det'=>1], ['id'=>$good['id']]);
+            $active_price = $price * $discount;
+            $res = model('goods_prop')->save(['good_id' => $good['id'], 'prop_name' => $weight . 'g', 'prop_price' => $price, 'num' => 1, 'prop_no' => $p, 'prop_active_price' => $active_price]);
+            if ($res) {
+                model('goods')->save(['have_det' => 1], ['id' => $good['id']]);
                 $count++;
-            }else{
+            } else {
                 $flag = false;
             }
         }
-        if($flag){
+        if ($flag) {
             exit_json(1, $count);
-        }else{
+        } else {
             exit_json(-1, '操作失败');
         }
+    }
+
+    /**
+     * 积分商品
+     */
+    public function score_goods()
+    {
+        $list = db('gift')->where('shop_id', SHOP_ID)->select();
+        $this->assign('list', $list);
+        return $this->fetch();
+    }
+
+    public function gift()
+    {
+        $sixun = new SixunOpera();
+        $list = $sixun->getGift();
+        $gift = db('gift')->where('shop_id', SHOP_ID)->column('gno');
+        $data = [];
+        foreach ($list as $l) {
+            $t = $l;
+            $t['item_name'] = iconv('gbk', 'utf-8', $t['item_name']);
+            if (in_array($l['vg_no'], $gift)) {
+                $t['status'] = 1;
+            } else {
+                $t['status'] = 0;
+            }
+            $data[] = $t;
+        }
+        $this->assign('list', $data);
+        return $this->fetch();
+    }
+
+    /**
+     * 操作积分商品
+     */
+    public function oper_gift()
+    {
+        $goodInfo = json_decode(input('data'), true);
+        $status = input('status');
+        $res = false;
+        if ($status == 0) {
+            //删除商品
+            $res = db('gift')->where(['gno' => $goodInfo['vg_no'], 'shop_id' => SHOP_ID])->delete();
+        } elseif ($status == 1) {
+            //添加商品
+            $res = db('gift')->insert(['shop_id' => SHOP_ID, 'good_name' => $goodInfo['item_name'], 'good_price' => $goodInfo['sale_price'], 'gno' => $goodInfo['vg_no'], 'score'=>$goodInfo['vg_vip_num']]);
+        } else {
+            exit_json(-1, '参数错误');
+        }
+        if ($res) {
+            exit_json();
+        } else {
+            exit_json(-1, '操作失败');
+        }
+    }
+
+    /**
+     * 删除积分商品
+     */
+    public function score_del()
+    {
+        $id = input('idstr');
+        $res = db('gift')->where('id', $id)->delete();
+        if ($res) {
+            exit_json();
+        } else {
+            exit_json(-1, '操作失败');
+        }
+    }
+
+    /**
+     * 积分商品设置图片
+     */
+    public function score_image()
+    {
+        $file = request()->file('file');
+        if ($file) {
+            $info = $file->move(__UPLOAD__);
+            if ($info) {
+                $saveName = $info->getSaveName();
+                $path = "/upload/" . $saveName;
+                $res = db('gift')->where('id', input('id'))->update(['image' => $path]);
+                if ($res) {
+                    exit_json(1, '操作成功');
+                } else {
+                    exit_json(-1, '操作失败');
+                }
+            } else {
+                // 上传失败获取错误信息
+                exit_json(-1, $file->getError());
+            }
+        } else {
+            exit_json(-1, '文件不存在');
+        }
+    }
+
+    public function saveRem()
+    {
+        $id = input('id');
+        $num = input('num');
+        if($num>=0){
+            $res = db('gift')->where('id', $id)->update(['num'=>$num]);
+            if($res){
+                exit_json();
+            }else{
+                exit_json(-1, '保存失败');
+            }
+        }else{
+            exit_json(-1, '数量错误');
+        }
+
     }
 
 
