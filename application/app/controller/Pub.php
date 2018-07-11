@@ -29,34 +29,19 @@ class Pub extends Controller
 
     public function test()
     {
-        ignore_user_abort(1);
-        set_time_limit(0);
-        $i = 1;
-        while (true){
-//            $msg = pushMess();
-            sleep('5');
-            if($i>20){
-                break;
-            }
-            $i++;
-            Log::error("$i");
-        }
+        $res = pushMess('你设置的抢购活动还有5分钟开启', ['id' => '123123', 'url' => 'dfsgfdasfsfgsfd', 'scene' => 'sec_active']);
+        echo $res;
         exit();
     }
 
-    public function testOrder()
+    public function getVersion()
     {
-        $orderInfo = model('order')->where('order_no', '201806190912184404919')->find();
-        $order_det = model('orderDet')->where('order_no', '201806190912184404919')->select();
-        $orderInfo['order_det'] = $order_det;
-        $s = new SixunOpera();
-        try{
-            $s->writeOrder('001', $orderInfo);
-        }catch (Exception $e){
-            exit_json(-1, $e->getMessage());
+        $version = input('version');
+        if ($version == config('version')) {
+            exit_json(-1, '当前版本为最新版本');
+        } else {
+            exit_json(1, '有新版本', ['url' => config('download_url'), 'version' => config('version')]);
         }
-        exit_json();
-        
     }
 
 
@@ -82,16 +67,16 @@ class Pub extends Controller
         $jiguangToken = input('post.jiguangToken');
         $userModel = new User();
         $user = $userModel->where('phone', 'eq', $telephone)->find();
-        if($user){
-            if($user['password'] != md5($password)){
+        if ($user) {
+            if ($user['password'] != md5($password)) {
                 exit_json(-1, '密码错误');
             }
-            if($user['status']!=0){
+            if ($user['status'] != 0) {
                 exit_json(-1, '当前用户不存在');
             }
-            $userModel->isUpdate(true)->save(['jiguangToken'=>$jiguangToken], ['id'=>$user['id']]);
+            $userModel->isUpdate(true)->save(['jiguangToken' => $jiguangToken], ['id' => $user['id']]);
             exit_json(1, '登陆成功', $userModel->getUserInfo($user));
-        }else{
+        } else {
             exit_json(-1, '会员不存在');
         }
     }
@@ -117,8 +102,8 @@ class Pub extends Controller
         if ($userid) {
             $jiguangToken = input('post.jiguangToken');
             $rongYun = new RongYun();
-            $token = $rongYun->getToken('vip'.$userid, $data['phone'], config('default_img'));
-            $userModel->save(['rongyunToken'=>$token, 'jiguangToken'=>$jiguangToken], ['id'=>$userid]);
+            $token = $rongYun->getToken('vip' . $userid, $data['phone'], config('default_img'));
+            $userModel->save(['rongyunToken' => $token, 'jiguangToken' => $jiguangToken], ['id' => $userid]);
             //注册赠送优惠券
             model('UserCoupon')->giveRegisterCoupon($userid);
             $user = $userModel->find($userid);
@@ -134,19 +119,19 @@ class Pub extends Controller
     function resetPassword()
     {
         $data = input('post.');
-        if(!$data['phone'] || !$data['code'] || !$data['password']){
+        if (!$data['phone'] || !$data['code'] || !$data['password']) {
             exit_json(-1, '参数错误');
         }
         $smsModel = new SendSms($data['phone']);
         $vres = $smsModel->checkVcode($data['code']);
-        if(!$vres){
+        if (!$vres) {
             exit_json(-1, '验证码错误');
         }
         $userModel = new User();
-        $res = $userModel->save(['password'=>md5($data['password'])], ['phone'=>$data['phone']]);
-        if($res){
+        $res = $userModel->save(['password' => md5($data['password'])], ['phone' => $data['phone']]);
+        if ($res) {
             exit_json();
-        }else{
+        } else {
             exit_json(-1, '重置密码失败');
         }
     }

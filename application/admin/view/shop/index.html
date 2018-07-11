@@ -36,6 +36,7 @@
 				<!--<th width="90">到期时间</th>-->
 				<!--<th width="90">店铺创建来源</th>-->
 				<th width="80">是否可用</th>
+				<th width="80">是否默认</th>
 				<th width="120">操作</th>
 			</tr>
 		</thead>
@@ -57,6 +58,13 @@
 					<span class="label label-default radius">已禁止</span>
 					{/if}
 				</td>
+				<td class="td-status">
+					{if $v.is_default==1}
+					<span class="label label-success radius">默认店铺</span>
+					{else}
+					<span class="label label-default radius">普通店铺</span>
+					{/if}
+				</td>
 				<td class="td-manage">
 					{if $v.enable == 1}
 					<a style="text-decoration:none" onClick="admin_stop(this,'{$v.id}')" href="javascript:;" title="停用">
@@ -65,6 +73,11 @@
 					{else}
 					<a style="text-decoration:none" onClick="admin_start(this,'{$v.id}')" href="javascript:;" title="启用">
 						<i class="Hui-iconfont">&#xe615;</i>启用
+					</a>
+					{/if}
+					{if $v.is_default == 0}
+					<a style="text-decoration:none" onClick="admin_default(this,'{$v.id}')" href="javascript:;" title="设为默认">
+						<i class="Hui-iconfont Hui-iconfont-duigou"></i>设为默认店铺
 					</a>
 					{/if}
 					<!--<a title="编辑" href="javascript:;" onclick="admin_edit('便利店编辑','{:url("Admin/adminEdit")}?adminId={$v.id}','','800','500')" class="ml-5" style="text-decoration:none">-->
@@ -115,6 +128,17 @@ function admin_del(obj,id){
 			},
 		});		
 	});
+}
+
+function admin_default(o, id) {
+		layer.confirm('确认设为默认店铺？', function () {
+			$.post("{:url('set_default')}", {id:id}, function (res) {
+				if(res.code == 1){
+				    location.reload();
+				}
+				layer.msg(res.msg);
+            });
+        })
 }
 
 /*管理员-编辑*/

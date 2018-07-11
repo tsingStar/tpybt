@@ -99,12 +99,12 @@ class PayResult extends Controller
     {
         $payInfo = [];
         if ($pay_type == 1) {
-            $payInfo['out_trade_no'] = $orderInfo['out_trade_no'];
+            $payInfo['out_trade_no'] = substr($orderInfo['out_trade_no'], 0, -4);
             $payInfo['trade_no'] = $orderInfo['trade_no'];
             $payInfo['total_money'] = $orderInfo['total_amount'];
 //            $payInfo['seller_id'] = $orderInfo['seller_id'];
         } else if ($pay_type == 2) {
-            $payInfo['out_trade_no'] = $orderInfo['out_trade_no'];
+            $payInfo['out_trade_no'] = substr($orderInfo['out_trade_no'], 0, -4);
             $payInfo['trade_no'] = $orderInfo['transaction_id'];
             $payInfo['total_money'] = $orderInfo['total_fee']/100;
         }

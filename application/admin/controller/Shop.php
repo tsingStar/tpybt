@@ -130,5 +130,21 @@ class Shop extends BaseController
         }
     }
 
+    /**
+     * 设置默认店铺
+     */
+    public function set_default()
+    {
+        $id = input('id');
+        $res = model('shop')->save(['is_default'=>0], ['id'=>['neq', $id]]);
+        $res1 = model('shop')->save(['is_default'=>1], ['id'=>$id]);
+        if($res && $res1){
+            exit_json();
+        }else{
+            exit_json(-1, '设置成功');
+        }
+        
+    }
+
 
 }

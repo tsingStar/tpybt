@@ -1,5 +1,4 @@
 ﻿{include file='pub/header'/}
-<title>公告列表</title>
 </head>
 <body class="pos-r">
 <div>
@@ -10,8 +9,8 @@
     <div class="page-container">
         <div class="cl pd-5 bg-1 bk-gray mt-20">
             <span class="l">
-                <a class="btn btn-primary radius" onclick="report_add('添加公告','report.html')" href="javascript:;">
-                    <i class="Hui-iconfont">&#xe600;</i> 添加公告
+                <a class="btn btn-primary radius" onclick="report_add('添加店员','employeeAdd.html')" href="javascript:;">
+                    <i class="Hui-iconfont">&#xe600;</i> 添加店员
                 </a>
             </span>
         </div>
@@ -20,9 +19,9 @@
                 <thead>
                 <tr class="text-c">
                     <th width="40">ID</th>
-                    <th width="40">公告提示</th>
+                    <th width="40">姓名</th>
+                    <th width="40">手机号</th>
                     <th width="40">创建时间</th>
-                    <th width="40">上次推送时间</th>
                     <th width="100">操作</th>
                 </tr>
                 </thead>
@@ -30,23 +29,24 @@
                 {foreach $list as $item}
                 <tr class="text-c va-m">
                     <td>{$item.id}</td>
-                    <td>{$item.title}</td>
+                    <td>{$item.name}</td>
+                    <td>{$item.telephone}</td>
                     <td>{$item.create_time}</td>
-                    <td>{$item.push_time}</td>
                     <td class="td-manage">
-                        <a style="text-decoration:none" class="ml-5"
-                           onClick="push('{$item.id}', this)"
-                           href="javascript:;" title="">
-                            <i class="Hui-iconfont">&#xe603;</i>
-                            推送
+                        {if $item.status eq 1}
+                        <a href="javascript:;" onclick="changeStatus('{$item.status}', '{$item.id}')">
+                            <i class="Hui-iconfont Hui-iconfont-close"></i>停用
                         </a>
-                        <a style="text-decoration:none" class="ml-5"
-                           onClick="detail('{:url(\'Index/index/report\', [\'r_id\'=>$item.id])}')"
-                           href="javascript:;" title="">
-                            <i class="Hui-iconfont">&#xe685;</i>
-                            详情
+                        {else/}
+                        <a href="javascript:;" onclick="changeStatus('{$item.status}', '{$item.id}')">
+                            <i class="Hui-iconfont Hui-iconfont-duigou"></i>启用
                         </a>
-                        <a style="text-decoration:none" class="ml-5" onClick="data_del(this,'{$item.id}', 'report')"
+                        {/if}
+                        <a style="text-decoration:none" class="ml-5" onClick="report_add('添加店员','employeeEdit.html?id={$item.id}')"
+                           href="javascript:;" title="编辑">
+                            <i class="Hui-iconfont Hui-iconfont-edit"></i>编辑
+                        </a>
+                        <a style="text-decoration:none" class="ml-5" onClick="data_del(this,'{$item.id}', 'employee')"
                            href="javascript:;" title="删除">
                             <i class="Hui-iconfont">&#xe6e2;</i>删除
                         </a>
@@ -61,28 +61,18 @@
 
 {include file='pub/footer'/}
 <script type="text/javascript">
-    $('.table-sort').dataTable();
-
     function report_add(title, url) {
         layer_show(title, url);
     }
 
-    function push(id) {
-        layer.confirm('确定推送消息？', function () {
-            $.post("{:url('ShopInfo/push')}", {id: id}, function (res) {
-                if (res.code == 1) {
-                    location.reload();
-                } else {
-                    layer.msg(res.msg);
-                }
-            });
+    function changeStatus(status, id) {
+        $.post("{:url('changeEmployee')}", {id:id, status:status}, function (res) {
+            if(res.code == 1){
+                location.reload();
+            }
+            layer.msg(res.msg);
         });
     }
-
-    function detail(url) {
-        layer_show('店铺公告', url);
-    }
-    
     function data_del(o, id, table) {
         layer.confirm('确定删除数据？', function () {
             $.post("{:url('delData1')}", {id:id, table:table}, function(res){
@@ -93,8 +83,6 @@
             })
         })
     }
-
-
 </script>
 </body>
 </html>

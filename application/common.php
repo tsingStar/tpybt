@@ -165,7 +165,6 @@ function pushMess($content = "显示内容", $extras = array(), $receive = "all"
     vendor('JPush.Jpush');
     $pushObj = new \Jpush(config('jiguangKey'), config('jiguangSecret'));
     //调用推送,并处理
-    $extras = is_object($extras) ? json_encode($extras) : new \stdClass();
     $result = $pushObj->push($receive, $title, $content, $extras, $m_time, $is_notify);
     if ($result) {
         $res_arr = json_decode($result, true);

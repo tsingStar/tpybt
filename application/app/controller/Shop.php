@@ -50,29 +50,33 @@ class Shop extends BaseUser
         if ($shop_id) {
             $shop = $shopModel->field('id, shopname, shoplogo, phone, address, create_time, location, limit_cost')->where('id', 'eq', $shop_id)->find();
         } else {
-            $shopArr = $shopModel->field('id, shopname, shoplogo, phone, address, create_time, location, limit_cost')->where('enable', 'eq', 1)->select();
-            $t = 0;
-            $t_dis = 999999;
-            if (is_array($shopArr) && count($shopArr) > 0) {
-                foreach ($shopArr as $k => $s) {
-                    $location = explode(',', $s['location']);
-                    if (count($location) != 2) {
-                        continue;
-                    }
-                    $distance = GetDistance($lat, $lng, $location[1], $location[0]);
-                    if ($k == 0) {
-                        $t = $k;
-                        $t_dis = $distance;
-                    } else {
-                        if ($distance < $t_dis) {
+            if(!$lat || !$lng){
+                $shop = $shopModel->field('id, shopname, shoplogo, phone, address, create_time, location, limit_cost')->where('is_default', 'eq', 1)->find();
+            }else{
+                $shopArr = $shopModel->field('id, shopname, shoplogo, phone, address, create_time, location, limit_cost')->where('enable', 'eq', 1)->select();
+                $t = 0;
+                $t_dis = 999999;
+                if (is_array($shopArr) && count($shopArr) > 0) {
+                    foreach ($shopArr as $k => $s) {
+                        $location = explode(',', $s['location']);
+                        if (count($location) != 2) {
+                            continue;
+                        }
+                        $distance = GetDistance($lat, $lng, $location[1], $location[0]);
+                        if ($k == 0) {
                             $t = $k;
                             $t_dis = $distance;
+                        } else {
+                            if ($distance < $t_dis) {
+                                $t = $k;
+                                $t_dis = $distance;
+                            }
                         }
                     }
+                    $shop = $shopArr[$t];
+                } else {
+                    $shop = $shopModel->field('id, shopname, shoplogo, phone, address, create_time, location, limit_cost')->where('is_default', 'eq', 1)->find();
                 }
-                $shop = $shopArr[$t];
-            } else {
-                exit_json(-1, '暂无店铺信息');
             }
         }
         exit_json(1, '请求成功', $shop);
@@ -437,6 +441,26 @@ class Shop extends BaseUser
                 model('user')->rollback();
                 exit_json(-1, '操作失败');
             }
+        }
+    }
+
+    /**
+     * 添加抢购提醒
+     */
+    public function addTips()
+    {
+        $good_id = input('good_id');
+        $shop_id = input('shop_id');
+        $sec = db('sec_active')->where(['good_id'=>$good_id, 'shop_id'=>$shop_id])->order('start_time desc')->find();
+        $s = db('sec_tips')->where('sec_id', $sec['id'])->where('user_id', USER_ID)->find();
+        if($s){
+            exit_json(-1, '已设置提醒');
+        }
+        $res = db('sec_tips')->insert(['sec_id'=>$sec['id'], 'shop_id'=>$shop_id, 'user_id'=>USER_ID, 'tips_time'=>strtotime($sec['start_time'])]);
+        if($res){
+            exit_json();
+        }else{
+            exit_json(-1, '设置失败，刷新后请重试');
         }
     }
 

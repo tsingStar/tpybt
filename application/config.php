@@ -313,5 +313,8 @@ return [
     'active'=>[
         '0'=>'普通商品',
         'sec_active'=>'限时抢购',
-    ]
+    ],
+    'order_remain'=>15, //订单有效时间 min
+    'version'=>'1.0',
+    'download_url'=>__URL__.'/ybt.apk',
 ];

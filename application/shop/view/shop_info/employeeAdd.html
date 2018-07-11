@@ -1,0 +1,89 @@
+{include file='pub/header'/}
+</head>
+<body>
+<nav class="breadcrumb">{$breadNav}</nav>
+<div class="page-container">
+    <form class="form form-horizontal" id="report" method="post" enctype="multipart/form-data">
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-2">姓名：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input type="text" class="input-text" value="" placeholder="" name="name">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-2">手机号：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input type="text" class="input-text" value="" placeholder="" name="telephone">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-2">密码：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input type="text" class="input-text" value="" placeholder="" name="password">
+            </div>
+        </div>
+        <div class="row cl">
+            <div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-2">
+                <button class="btn btn-secondary radius" type="submit"><i class="Hui-iconfont">&#xe632;</i> 保存信息
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{include file="pub/footer"/}
+<script type="text/javascript">
+    $(function () {
+        $.validator.addMethod("is_telephone",function(value,element,params){
+            if(/^((13[0-9])|(14[5,7])|(15[0-3,5-9])|(17[0,3,5-8])|(18[0-9])|166|198|199)\d{8}$/.test(value)){
+                return true;
+            }else{
+                return false;
+            }
+        },"手机号格式错误");
+        $("#report").validate({
+            rules: {
+                name: {
+                    required: true
+                },
+                telephone: {
+                    is_telephone: true
+                },
+                password: {
+                    required: true
+                }
+            },
+            messages: {
+                name: {
+                    required: '姓名不能为空'
+                },
+                password:{
+                    required:'密码不能为空'
+                }
+            },
+            onkeyup: false,
+            focusCleanup: true,
+            success: "valid",
+            submitHandler: function (form) {
+                $(form).ajaxSubmit({
+                    type: 'post',
+                    url: '{:url("ShopInfo/employeeAdd")}',
+                    success: function (res) {
+                        if (1 == res.code) {
+                            layer.msg(res.msg, {icon: 6, time: 1000});
+                            setTimeout(function () {
+                                parent.location.reload();
+                            }, 888);
+                        } else {
+                            layer.msg(res.msg, {icon: 5, time: 1000});
+                        }
+                    }
+                });
+
+            }
+        });
+
+
+    });
+</script>
+</body>
+</html>

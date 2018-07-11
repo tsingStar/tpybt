@@ -48,11 +48,14 @@ class User extends Model
         $user['gender'] = $userInfo['gender'];
         $user['birthday'] = $userInfo['birthday'];
         $user['is_set_trade'] = $userInfo['trade_password'] ? 1 : 0;
+        $user['card_no'] = $userInfo['card_no'];
+        $user['card_id'] = $userInfo['card_id'];
+        $user['create_time'] = $userInfo['creattime'];
         return $user;
     }
 
-    /**获取用户基本信息
-     *
+    /**
+     * 获取用户基本信息
      */
     public function getUserInfo($res)
     {
@@ -70,6 +73,7 @@ class User extends Model
                 $sixunModel->addVip($res, $cardNo, $cardId);
                 $cardFlag = 0;
                 $res['card_no'] = $cardNo;
+                $res['card_id'] = $cardId;
             }
         } else {
             $cardInfo = $sixunModel->getCardInfo($res['card_id']);
@@ -84,6 +88,7 @@ class User extends Model
                     $sixunModel->addVip($res, $cardNo, $cardId);
                     $cardFlag = 0;
                     $res['card_no'] = $cardNo;
+                    $res['card_id'] = $cardId;
                 }
             }else{
                 //同步思迅会员余额和积分，重置app用户基本信息

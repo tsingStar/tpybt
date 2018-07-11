@@ -86,7 +86,7 @@ class Pay
         ]);
         //重置支付订单号
         $payId = $payOrder->getLastInsID();
-        $orderInfo['out_trade_no'] = $payId;
+        $orderInfo['out_trade_no'] = $payId."_ybt";
         if ($pay_type == 1) {
             //支付宝
             $orderString = $this->alipay->createAppPayOrder($orderInfo, $notify_url);

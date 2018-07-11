@@ -60,10 +60,10 @@ class ShopInfo extends ShopBase
             $res = $shopModel->allowField(true)->save($_POST, ['id' => SHOP_ID]);
             //重置商品销售价格
             $discount = input('post.discount');
-            if($discount>0 && $discount<=1){
-                $good_ids = model('goods')->where(['shop_id'=>SHOP_ID, 'active_id'=>0])->column('id');
-                db()->query("update ybt_goods set active_price=sale_price*$discount where id in (".join(',', $good_ids).")");
-                db()->query("update ybt_goods_prop set prop_active_price=prop_price*$discount where good_id in (".join(',', $good_ids).")");
+            if ($discount > 0 && $discount <= 1) {
+                $good_ids = model('goods')->where(['shop_id' => SHOP_ID, 'active_id' => 0])->column('id');
+                db()->query("update ybt_goods set active_price=sale_price*$discount where id in (" . join(',', $good_ids) . ")");
+                db()->query("update ybt_goods_prop set prop_active_price=prop_price*$discount where good_id in (" . join(',', $good_ids) . ")");
             }
             if ($res) {
                 $shop = $shopModel->getShopInfo(SHOP_ID);
@@ -253,9 +253,9 @@ class ShopInfo extends ShopBase
         $r_id = input('id');
         $report = model('report')->where('id', $r_id)->find();
         $url = __URL__ . url('Index/index/report', ['r_id', $r_id]);
-        $res = pushMess($report['title'], ['url' => $url]);
+        $res = pushMess($report['title'], ['url' => $url, 'scene' => 'shop_report', 'id' => '']);
         if ($res) {
-            model('report')->save(['push_time'=>date('Y-m-d H:i:s')], ['id'=>$r_id]);
+            model('report')->save(['push_time' => date('Y-m-d H:i:s')], ['id' => $r_id]);
             exit_json();
         } else {
             exit_json(-1, '推送失败');
@@ -292,10 +292,10 @@ class ShopInfo extends ShopBase
      */
     public function swiperList()
     {
-        $list = model('swiper')->where(['shop_id'=>SHOP_ID])->select();
+        $list = model('swiper')->where(['shop_id' => SHOP_ID])->select();
         $this->assign('list', $list);
         return $this->fetch();
-        
+
     }
 
     /**
@@ -303,16 +303,16 @@ class ShopInfo extends ShopBase
      */
     public function swiperAdd()
     {
-        if(request()->isAjax()){
+        if (request()->isAjax()) {
             $image = input('image');
             $content = input('content');
-            $res = model('swiper')->save(['image'=>$image, 'content'=>$content, 'ord'=>input('ord'), 'shop_id'=>SHOP_ID, 'title'=>input('title')]);
-            if($res){
+            $res = model('swiper')->save(['image' => $image, 'content' => $content, 'ord' => input('ord'), 'shop_id' => SHOP_ID, 'title' => input('title')]);
+            if ($res) {
                 $id = model('swiper')->getLastInsID();
-                $target_url = url('index/Index/swiper', ['s_id'=>$id]);
-                model('swiper')->save(['target_url'=>$target_url], ['id'=>$id]);
+                $target_url = url('index/Index/swiper', ['s_id' => $id]);
+                model('swiper')->save(['target_url' => $target_url], ['id' => $id]);
                 exit_json();
-            }else{
+            } else {
                 exit_json(-1, '保存失败');
             }
         }
@@ -326,18 +326,18 @@ class ShopInfo extends ShopBase
     {
         $s_id = input('id');
         $swiper = model('swiper')->where('id', $s_id)->find();
-        if(request()->isAjax()){
-            $res = $swiper->allowField(true)->save(input('post.'), ['id'=>$s_id]);
-            if($res){
+        if (request()->isAjax()) {
+            $res = $swiper->allowField(true)->save(input('post.'), ['id' => $s_id]);
+            if ($res) {
                 exit_json(1, '编辑成功');
-            }else{
-                exit_json(-1,'操作失败');
+            } else {
+                exit_json(-1, '操作失败');
             }
         }
 
         $this->assign('item', $swiper);
         return $this->fetch();
-        
+
     }
 
     /**
@@ -347,11 +347,74 @@ class ShopInfo extends ShopBase
     {
         $id = input('id');
         $res = model('swiper')->where('id', $id)->delete();
-        if($res){
+        if ($res) {
             exit_json();
-        }else{
+        } else {
             exit_json(-1, '删除失败');
         }
+    }
+
+    /**
+     * 店员
+     */
+    public function employee()
+    {
+        $list = model('employee')->where('shop_id', SHOP_ID)->select();
+        $this->assign('list', $list);
+        return $this->fetch();
+    }
+
+    /**
+     * 添加店员
+     */
+    public function employeeAdd()
+    {
+        if (request()->isAjax()) {
+            $data = input('post.');
+            $data['shop_id'] = SHOP_ID;
+            $res = model('employee')->save($data);
+            if ($res) {
+                exit_json();
+            } else {
+                exit_json(-1, '添加失败');
+            }
+        }
+        return $this->fetch();
+    }
+
+    /**
+     * 店员编辑
+     */
+    public function employeeEdit()
+    {
+        if (request()->isAjax()) {
+            $data = input('post.');
+            $res = model('employee')->save($data, ['id', $data['id']]);
+            if ($res) {
+                exit_json();
+            } else {
+                exit_json(-1, '添加失败');
+            }
+        }
+        $ep = model('employee')->where('id', input('id'))->find();
+        $this->assign('item', $ep);
+        return $this->fetch();
+    }
+
+    /**
+     * 更改店员状态
+     */
+    public function changeEmployee()
+    {
+        $id = input('id');
+        $status = input('status') == 0 ? 1 : 0;
+        $res = model('employee')->save(['status' => $status], ['id' => $id]);
+        if ($res) {
+            exit_json();
+        } else {
+            exit_json(-1, '操作失败');
+        }
+
     }
 
     /**
@@ -361,6 +424,20 @@ class ShopInfo extends ShopBase
     {
         $ids = input('idstr');
         $res = db('shop_dispatch_area')->where('id', 'in', $ids)->delete();
+        if ($res) {
+            exit_json();
+        } else {
+            exit_json('操作失败');
+        }
+    }
+    /**
+     * 根据id删除数据
+     */
+    function delData1()
+    {
+        $id = input('id');
+        $table = input('table');
+        $res = db("$table")->where(['id' => $id])->delete();
         if ($res) {
             exit_json();
         } else {

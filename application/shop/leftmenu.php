@@ -14,6 +14,10 @@ $leftmenu = [
                 'url'=>'ShopInfo/baseInfo'
             ],
             [
+                'navName'=>'店员管理',
+                'url'=>'ShopInfo/employee'
+            ],
+            [
                 'navName'=>'营业时间设置',
                 'url'=>'ShopInfo/openTime'
             ],

@@ -1,0 +1,4 @@
+自定义消息
+    'id'=>776   //订单id知
+    'url'=>''   //跳转h5url
+    'scene'=>'order'    //场景  order:订单发货通知 order_refund:订单退款通知 shop_report:店铺公告通知 sec_active:抢购提醒通

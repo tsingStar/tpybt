@@ -50,6 +50,15 @@ class Index extends BaseController
      */
     function shouye()
     {
+        $order_num = model('order')->count();
+        $order_num_today = model('order')->where(['create_time' => ['between', [strtotime(date('Y-m-d')), strtotime(date('Y-m-d', strtotime('+1 day')))]]])->count();
+        $order_num_yes = model('order')->where(['create_time' => ['between', [strtotime(date('Y-m-d', strtotime('-1 day'))), strtotime(date('Y-m-d'))]]])->count();
+        $vip_num = model('user')->count();
+        $vip_num_today = model('user')->where(['creattime' => ['between', [strtotime(date('Y-m-d')), strtotime(date('Y-m-d', strtotime('+1 day')))]]])->count();
+        $vip_num_yes = model('user')->where(['creattime' => ['between', [strtotime(date('Y-m-d', strtotime('-1 day'))), strtotime(date('Y-m-d'))]]])->count();
+        $this->assign('data', ['order_num'=>$order_num, 'order_num_today'=>$order_num_today, 'order_num_yes'=>$order_num_yes,'vip_num'=>$vip_num, 'vip_num_today'=>$vip_num_today, 'vip_num_yes'=>$vip_num_yes]);
+        $admin = model('admins')->where('id', session('admin_id'))->find();
+        $this->assign('admin', $admin);
         return $this->fetch();
     }
 

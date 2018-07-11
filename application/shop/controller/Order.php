@@ -173,8 +173,10 @@ class Order extends ShopBase
         $order_no = input('order_no');
         $status = input('status');
         $order_refund = model('order_refund')->where('order_no', $order_no)->find();
+        //添加退款通知
         if ($status == 1) {
             //确认退款
+            pushMess('您申请的退款订单已同意', ['id'=>$order_refund['order_id'], 'url'=>'', 'scene'=>'order_refund']);
             $order_refund->save(['status' => 1, 'money' => input('money')]);
             $order_refund->refundOrder($order_no);
             exit_json(1, '操作成功');
@@ -220,6 +222,9 @@ class Order extends ShopBase
         $order = model('order')->where('id', $order_id)->find();
         $res = $order->save(['is_send' => 1, 'send_time' => date('Y-m-d H:i:s')]);
         if ($res) {
+            //添加发货通知
+            pushMess('您的订单已配送', ['id'=>$order_id, 'url'=>'' , 'scene'=>'order']);
+
             try {
                 $sixun = new SixunOpera();
                 $order['order_det'] = model('order_det')->where('order_no', $order['order_no'])->select();
