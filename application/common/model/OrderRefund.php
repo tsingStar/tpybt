@@ -32,12 +32,13 @@ class OrderRefund extends Model
     {
         $this->where('order_no', $order_no)->find();
         $order = model('order')->where('id', $this->getAttr('order_id'))->find();
+        $sixun = new SixunOpera();
+        $user = model('user')->where('id', $order['user_id'])->find();
+        $card = $sixun->getCardInfo($user['card_id']);
         if ($order['pay_type'] == 3) {
             $res = model('user')->where('id', $order['user_id'])->setInc('cost', $this->getAttr('money'));
             //退款写入思迅余额
-            $user = model('user')->where('id', $order['user_id'])->find();
-            $sixun = new SixunOpera();
-            $card = $sixun->getCardInfo($user['card_id']);
+
             $cost = $card['cost']+$this->getAttr('money');
             $sixun->set_residual_amt($cost, $user['card_id']);
             //退款写入思迅余额
@@ -51,13 +52,15 @@ class OrderRefund extends Model
             $moneyLog = new MoneyLog();
             $moneyLog->writeLog($order['user_id'], $this->getAttr('money'), config('pay_type')[$order['pay_type']], '订单退款', $order['order_no']);
             //退款冲减会员积分
-            $user = model('user')->where('id', $order['user_id'])->find();
             $user->setDec('score', $this->getAttr('money'));
             model('ScoreLog')->save([
                 'score'=>$this->getAttr('money'),
                 'type'=>2,
-                'user_id'=>$order['user_id']
+                'user_id'=>$order['user_id'],
+                'desc'=>'订单退款积分冲减'
             ]);
+            $score = $card['acc_num']-$this->getAttr('money');
+            $sixun->set_core($score, $user['card_id']);
             return true;
         }else{
             return false;

@@ -33,6 +33,8 @@ class PayResultOther
             $user = model('user')->where('id', $order['user_id'])->find();
             $user->setInc('score', $score);
             $sixun = new SixunOpera();
+            $card = $sixun->getCardInfo($user['card_id']);
+            $score += $card['acc_num'];
             $sixun->set_core($score, $user['card_id']);
         }
         self::otherWelfare($order);

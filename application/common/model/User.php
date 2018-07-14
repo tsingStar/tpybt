@@ -190,14 +190,14 @@ class User extends Model
     {
         //积分字段 acc_num
         $user = $this->find(USER_ID);
-//        $sixunModel = new SixunOpera();
-//        $cardInfo = $sixunModel->getCardInfo($user->getAttr('card_id'));
-//        $acc_num = $cardInfo['acc_num']?:0;
-        $acc_num = 0;
+        $sixunModel = new SixunOpera();
+        $cardInfo = $sixunModel->getCardInfo($user->getAttr('card_id'));
+        $acc_num = $cardInfo['acc_num']?$cardInfo['acc_num']:0;
+//        $acc_num = 0;
         $acc_num += $dayScore;
         $tod_score = $user->tod_score + $dayScore;
         //同步思迅会员积分
-//        $sixunModel->set_core($acc_num, $cardInfo['card_id']);
+        $sixunModel->set_core($acc_num, $cardInfo['card_id']);
         $user->save(['score' => $acc_num, 'tod_score' => $tod_score]);
     }
 

@@ -132,13 +132,14 @@ class Order extends ShopBase
      */
     public function getNewOrder()
     {
-        $order_id = input('order_id');
+//        $order_id = input('order_id');
         $where = [];
         $where['order_status'] = 1;
+        $where['pay_status'] = 1;
         $where['is_send'] = 0;
         $where['shop_id'] = SHOP_ID;
-        $id = model('order')->where($where)->order('id desc')->value('id');
-        if ($id > $order_id) {
+        $count = model('order')->where($where)->order('id desc')->count();
+        if ($count>0) {
             exit_json();
         } else {
             exit_json(-1);

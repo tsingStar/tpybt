@@ -141,8 +141,13 @@ class Order extends Model
             $moneyLog = new MoneyLog();
             $moneyLog->writeLog($o['user_id'], -$o['real_cost'], config('pay_type')[$o['pay_type']], $o['shop_name'].'-订单支付', $o['order_no']);
             MoneyLogMonth::addLog($o['user_id'], date('Y-m'), $o['real_cost'], 'dec');
-            //TODO 添加WEB推送或商户APP推送时时提醒有新订单  增加账单消费记录
-            PayResultOther::setScore($o);   //订单支付成功处理赠送积分等
+            //订单支付成功处理赠送积分等
+            PayResultOther::setScore($o);
+
+
+
+
+
 
 
             return true;

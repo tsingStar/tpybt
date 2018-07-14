@@ -417,7 +417,7 @@ class SixunOpera
     //同步积分到思讯
     function set_core($allScore, $card_id)
     {
-        $back = $this->sqlserver->query("UPDATE t_rm_vip_info SET acc_num=acc_num+" . $allScore . " WHERE card_id='" . $card_id . "'");
+        $back = $this->sqlserver->query("UPDATE t_rm_vip_info SET acc_num=" . $allScore . " WHERE card_id='" . $card_id . "'");
         if ($back) {
             return true;
         } else {

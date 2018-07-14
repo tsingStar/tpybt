@@ -111,9 +111,8 @@
     }
 
     $(function () {
-        window.order_pre = "{$order_pre}";
         setInterval(function () {
-            $.post("{:url('getNewOrder')}", {order_id:order_pre}, function (res) {
+            $.post("{:url('getNewOrder')}", null, function (res) {
                 if(res.code == 1){
                     document.getElementById('tips').play();
                     setTimeout(function () {
