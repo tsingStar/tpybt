@@ -442,6 +442,7 @@ class Products extends ShopBase
         $this->assign('active_list', $active_list);
         $this->assign('cat_list', $cat_list);
         $this->assign('goodsList', $goods_list);
+        $this->assign('is_bulk', 1);
         return $this->fetch('plist');
     }
 
@@ -466,7 +467,42 @@ class Products extends ShopBase
         $this->assign('active_list', $active_list);
         $this->assign('cat_list', $cat_list);
         $this->assign('goodsList', $goods_list);
+        $this->assign('is_com', 1);
         return $this->fetch('plist');
+    }
+
+    /**
+     * 批量下架整箱商品
+     */
+    public function downGoods()
+    {
+        $res = model('goods')->save(['count' => 0, 'is_live' => 0], ['shop_id' => SHOP_ID, 'combine_sta' => 1]);
+        if ($res) {
+            exit_json();
+        } else {
+            exit_json(-1, '操作失败');
+        }
+    }
+
+    /**
+     * 整箱扫码上架
+     */
+    public function scanLoad()
+    {
+        $gnos = input('props');
+        $gno_arr = explode("\n", $gnos);
+        $data = array_count_values($gno_arr);
+        $count = 0;
+        $fail = 0;
+        foreach ($data as $key => $val) {
+            $res = model('goods')->save(['count' => $val], ['gno' => $key, 'shop_id' => SHOP_ID]);
+            if ($res) {
+                $count+=$val;
+            } else {
+                $fail-=$val;
+            }
+        }
+        exit_json(1, "成功上架" . $count . "件商品，失败" . $fail . "件商品");
     }
 
     /**
@@ -703,7 +739,7 @@ class Products extends ShopBase
             $res = db('gift')->where(['gno' => $goodInfo['vg_no'], 'shop_id' => SHOP_ID])->delete();
         } elseif ($status == 1) {
             //添加商品
-            $res = db('gift')->insert(['shop_id' => SHOP_ID, 'good_name' => $goodInfo['item_name'], 'good_price' => $goodInfo['sale_price'], 'gno' => $goodInfo['vg_no'], 'score'=>$goodInfo['vg_vip_num']]);
+            $res = db('gift')->insert(['shop_id' => SHOP_ID, 'good_name' => $goodInfo['item_name'], 'good_price' => $goodInfo['sale_price'], 'gno' => $goodInfo['vg_no'], 'score' => $goodInfo['vg_vip_num']]);
         } else {
             exit_json(-1, '参数错误');
         }
@@ -758,14 +794,14 @@ class Products extends ShopBase
     {
         $id = input('id');
         $num = input('num');
-        if($num>=0){
-            $res = db('gift')->where('id', $id)->update(['num'=>$num]);
-            if($res){
+        if ($num >= 0) {
+            $res = db('gift')->where('id', $id)->update(['num' => $num]);
+            if ($res) {
                 exit_json();
-            }else{
+            } else {
                 exit_json(-1, '保存失败');
             }
-        }else{
+        } else {
             exit_json(-1, '数量错误');
         }
 

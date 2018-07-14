@@ -29,9 +29,20 @@
                 <a class="btn btn-primary radius" onclick="updateImage()" href="javascript:;">
                     <i class="Hui-iconfont Hui-iconfont-huanyipi"></i> 更新商品图片
                 </a>
+                {if isset($is_bulk)}
                 <a class="btn btn-primary radius" onclick="addProps()" href="javascript:;">
                     <i class="Hui-iconfont">&#xe600;</i> 条码添加商品规格
                 </a>
+                {/if}
+
+                {if isset($is_com)}
+                <a class="btn btn-primary radius" onclick="downGoods()" href="javascript:;">
+                    <i class="Hui-iconfont Hui-iconfont-down"></i> 批量下架
+                </a>
+                <a class="btn btn-primary radius" onclick="scanUp()" href="javascript:;">
+                    <i class="Hui-iconfont  Hui-iconfont-upload"></i> 扫码上架商品
+                </a>
+                {/if}
             </span>
             <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px"
                href="javascript:location.replace(location.href);" title="刷新">
@@ -51,6 +62,9 @@
                     <th width="100">单价</th>
                     <th width="100">销售单价</th>
                     <th width="60">单位</th>
+                    {if isset($is_com)}
+                    <th width="100">商品库存</th>
+                    {/if}
                     <th width="60">是否首页推荐</th>
                     <!--<th width="60">是否为积分商品</th>-->
                     <th width="60">商品所属类别</th>
@@ -83,6 +97,14 @@
                     <td>
                         {$good.goodattr}
                     </td>
+                    {if isset($is_com)}
+                    <td>
+                        <span>
+                        <input type="text" value="{$good.count}" class="input-text" style="width: 60px;"/>
+                        <button type="button" class="radius btn-primary btn" onclick="saveRem(this, '{$good.id}')">保存</button>
+                        </span>
+                    </td>
+                    {/if}
                     <td class="is_recommend">
                         {if $good.is_recommend == 1}
                         是
@@ -176,7 +198,7 @@
         });
     }
     /**
-     * 上下架商品
+     * 设置推荐商品
      */
     function set_recommend(good_id, o){
         var status = $.trim($(o).html());
@@ -205,7 +227,7 @@
      * 上下架商品
      */
     function changeStatus(good_id, o){
-        var status = $(o).html();
+        var status = $.trim($(o).html());
         if(status == '上架'){
             var code = 1;
         }else{
@@ -344,6 +366,51 @@
                     }
                     layer.alert('成功添加'+res.msg+'个条码', function(){
                         layer.closeAll();
+                    });
+                }, 'json');
+            });
+        }
+    }
+
+    function downGoods(){
+            layer.confirm('确定下架商品？', function() {
+                layer.load();
+                $.post("{:url('Products/downGoods')}", null, function (res) {
+                    if (res.code == 1) {
+                        layer.closeAll();
+                        layer.alert('下架成功', function () {
+                            location.reload();
+                        });
+                    }
+                }, 'json');
+            });
+    }
+
+    function scanUp(){
+        layer.open({
+            title: '上架商品',
+            type: 1,
+            area: ['600px','450px'],
+            content: '<div style="margin-top: 25px; text-align: center; width: 100%; height: 95%;">' +
+            '<textarea id="props" style="width: 80%; height: 75%;" autofocus="autofocus"></textarea>' +
+            '<div style="text-align: right; width: 100%; margin-top: 25px;">' +
+            '<span style="font-size: 13px; color:red; margin-right: 15px;">多个条码以回车分隔开录入</span>' +
+            '<button onclick="scanLoad()" class="btn btn-primary radius">添加</button></div></div>'
+        })
+    }
+
+    function scanLoad(){
+        var props = $.trim($("#props").val());
+        if("" == props){
+            layer.msg('条码为空');
+            return false;
+        }else{
+            layer.confirm('确定添加条码为'+props+"?", function(){
+                layer.load();
+                $.post("{:url('Products/scanLoad')}", {props:props}, function(res){
+                    layer.alert('成功添加'+res.msg+'个条码', function(){
+                        layer.closeAll();
+                        location.reload();
                     });
                 }, 'json');
             });
