@@ -134,7 +134,8 @@ class Shop extends BaseUser
         $goodModel = new Goods();
         $extra = [
             'is_recommend' => 1,
-            'is_live' => 1
+            'is_live' => 1,
+            'active_id'=>0
         ];
         $goodsList = $goodModel->getGoodsList($shop_id, $extra, $page, $page_num);
         exit_json(1, '请求成功', $goodsList);
@@ -209,7 +210,8 @@ class Shop extends BaseUser
         $extra = [
             'cate_id' => $cate_id,
             'shop_id' => $shop_id,
-            'is_live' => 1
+            'is_live' => 1,
+            'active_id'=>0
         ];
         $goodList = $goodModel->getGoodsList($shop_id, $extra, $page, $page_num);
         exit_json(1, '请求成功', $goodList);
@@ -340,7 +342,7 @@ class Shop extends BaseUser
     public function getCombineGoods()
     {
         $shop_id = input('shop_id');
-        $list = model('goods')->alias('a')->join('shop_cate b', 'a.cate_id=b.id')->field('a.*, b.name cate_name')->where(['a.shop_id'=>$shop_id, 'a.combine_sta'=>1])->select();
+        $list = model('goods')->alias('a')->join('shop_cate b', 'a.cate_id=b.id')->field('a.*, b.name cate_name')->where(['a.shop_id'=>$shop_id, 'a.combine_sta'=>1, 'a.active_id'=>0])->select();
         $data = [];
         foreach ($list as $v){
             $data[$v['cate_name']][] = model('goods')->formatOne($v);

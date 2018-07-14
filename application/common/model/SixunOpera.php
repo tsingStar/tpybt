@@ -395,9 +395,10 @@ class SixunOpera
 
 
     //余额同步到思讯
-    function set_residual_amt($cost)
+    function set_residual_amt($cost, $card_id)
     {
         $cost = $this->money_encode($cost);
+        $this->sqlserver->query("UPDATE t_rm_vip_info SET residual_amt='" . $cost . "' WHERE card_id='" . $card_id . "'");
     }
     //增加累计消费
     /*function set_consum_amt($cost){

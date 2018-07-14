@@ -179,7 +179,7 @@
      * 上下架商品
      */
     function set_recommend(good_id, o){
-        var status = $(o).html();
+        var status = $.trim($(o).html());
         if(status == '设置首页推荐'){
             var code = 1;
         }else{
@@ -190,11 +190,12 @@
                 if(code == 1){
                     $(o).parent().siblings('.is_recommend').html('是');
                     $(o).html('取消首页推荐');
+                    layer.msg('修改成功');
                 }else{
                     $(o).parent().siblings('.is_recommend').html('否');
                     $(o).html('设置首页推荐');
+                    layer.msg('修改111');
                 }
-                layer.msg('修改成功');
             }else{
                 layer.msg('修改失败');
             }

@@ -51,9 +51,9 @@ class OrderRefund extends Model
                 'type'=>2,
                 'user_id'=>$order['user_id']
             ]);
-            exit_json(1, '退款成功');
+            return true;
         }else{
-            exit_json(-1, '退款失败');
+            return false;
         }
     }
 

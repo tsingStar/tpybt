@@ -34,7 +34,7 @@ class Order extends ShopBase
             $where = [];
             $where['a.shop_id'] = SHOP_ID;
             if (input('searchKey') && input('searchValue')) {
-                $where[input('a.searchKey')] = input('searchValue');
+                $where[input('searchKey')] = input('searchValue');
             }
 
             if (input('order_status') !== "") {
@@ -176,10 +176,17 @@ class Order extends ShopBase
         //添加退款通知
         if ($status == 1) {
             //确认退款
-            pushMess('您申请的退款订单已同意', ['id'=>$order_refund['order_id'], 'url'=>'', 'scene'=>'order_refund']);
-            $order_refund->save(['status' => 1, 'money' => input('money')]);
-            $order_refund->refundOrder($order_no);
-            exit_json(1, '操作成功');
+            model('order_refund')->startTrans();
+            $res = $order_refund->save(['status' => 1, 'money' => input('money')]);
+            $res1 = $order_refund->refundOrder($order_no);
+            if($res && $res1){
+                pushMess('您申请的退款订单已同意', ['id'=>$order_refund['order_id'], 'url'=>'', 'scene'=>'order_refund']);
+                model('order_refund')->commit();
+                exit_json(1, '操作成功');
+            }else{
+                model('order_refund')->rollback();
+                exit_json(-1, '退款失败');
+            }
         } elseif ($status == 0) {
             //拒绝退款
             $order_refund->save(['status' => 2, 'reason' => input('reason')]);
@@ -220,6 +227,9 @@ class Order extends ShopBase
     {
         $order_id = input('order_id');
         $order = model('order')->where('id', $order_id)->find();
+        if($order['is_send'] == 1){
+            exit_json(-1, '订单已处理');
+        }
         $res = $order->save(['is_send' => 1, 'send_time' => date('Y-m-d H:i:s')]);
         if ($res) {
             //添加发货通知
