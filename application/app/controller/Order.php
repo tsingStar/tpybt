@@ -73,7 +73,7 @@ class Order extends BaseUser
             }
         } else {
             if ($dispatch_time < $open_time['open_time'] || $dispatch_time > $open_time['end_time']) {
-                exit_json(-1, '配送时间不在店铺营业时间段');
+                exit_json(-1, '取货时间不在店铺营业时间段');
             }
         }
         //校验收货地址和配送时间合法性结束
@@ -99,6 +99,12 @@ class Order extends BaseUser
             $shop_cost += $value['total_price'];
         }
         $shop_cost = sprintf("%.2f", $shop_cost);
+        if($dispatch_type == 0){
+            $limit_cost = model('shop')->where('id', $shop_id)->value('limit_cost');
+            if($shop_cost<$limit_cost){
+                exit_json(-1, '商品价格低于店铺起送价'.$limit_cost);
+            }
+        }
         $coupon_fee = 0;
         $couponModel = model('UserCoupon');
         //校验优惠券合法性开始
