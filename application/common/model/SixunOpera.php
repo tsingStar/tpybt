@@ -577,14 +577,14 @@ class SixunOpera
         //会员消费记录 t_rm_vip_consume
 
         //余额消费更改会员余额 t_rm_vip_info
-        $user = $this->sqlserver->select_one("select * from t_rm_vip_info where card_id='$card_id'");
-        $residual_amt = $this->money_decode($user['residual_amt']);
-        if ($orderInfo['pay_type'] == 3) {
-            $residual_amt -= $orderInfo['real_cost'];
-        }
-        $residual_amt = $this->money_encode($residual_amt);
-        $sql_vip_info = "update t_rm_vip_info set residual_amt='$residual_amt' where card_id='$card_id'";
-        $this->sqlserver->query($sql_vip_info);
+//        $user = $this->sqlserver->select_one("select * from t_rm_vip_info where card_id='$card_id'");
+//        $residual_amt = $this->money_decode($user['residual_amt']);
+//        if ($orderInfo['pay_type'] == 3) {
+//            $residual_amt -= $orderInfo['real_cost'];
+//        }
+//        $residual_amt = $this->money_encode($residual_amt);
+//        $sql_vip_info = "update t_rm_vip_info set residual_amt='$residual_amt' where card_id='$card_id'";
+//        $this->sqlserver->query($sql_vip_info);
         return true;
     }
 

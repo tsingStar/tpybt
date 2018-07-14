@@ -34,6 +34,13 @@ class OrderRefund extends Model
         $order = model('order')->where('id', $this->getAttr('order_id'))->find();
         if ($order['pay_type'] == 3) {
             $res = model('user')->where('id', $order['user_id'])->setInc('cost', $this->getAttr('money'));
+            //退款写入思迅余额
+            $user = model('user')->where('id', $order['user_id'])->find();
+            $sixun = new SixunOpera();
+            $card = $sixun->getCardInfo($user['card_id']);
+            $cost = $card['cost']+$this->getAttr('money');
+            $sixun->set_residual_amt($cost, $user['card_id']);
+            //退款写入思迅余额
         } else {
             $pay = new Pay();
             $res = $pay->refundOrder($this->getAttr('id'), $this->getAttr('money'));

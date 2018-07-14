@@ -102,7 +102,7 @@ class Order extends BaseUser
         if($dispatch_type == 0){
             $limit_cost = model('shop')->where('id', $shop_id)->value('limit_cost');
             if($shop_cost<$limit_cost){
-                exit_json(-1, '商品价格低于店铺起送价'.$limit_cost);
+                exit_json(-1, '商品价格低于店铺起送价'.$limit_cost.'元。请选择到店自提。');
             }
         }
         $coupon_fee = 0;

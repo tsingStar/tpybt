@@ -118,6 +118,11 @@ class Order extends Model
         }
         if ($pay_type == 3) {
             $res = $this->save(['order_status' => 1, 'pay_status' => 1, 'pay_type' => $pay_type, 'pay_time' => date('Y-m-d H:i')], ['order_no' => $orderInfo['order_no']]);
+            $sixun = new SixunOpera();
+            $card_id = \model('user')->where('id', $order['user_id'])->value('card_id');
+            $vip = $sixun->getCardInfo($card_id);
+            $cost = $vip['cost']-$order['real_cost'];
+            $sixun->set_residual_amt($cost, $card_id);
         } else {
             $res = $this->save([
                 'order_status' => 1,

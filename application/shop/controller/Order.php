@@ -174,6 +174,7 @@ class Order extends ShopBase
         $status = input('status');
         $order_refund = model('order_refund')->where('order_no', $order_no)->find();
         $order = model('order')->where('order_no', $order_no)->find();
+        $token = model('user')->where('id', $order['user_id'])->value('jiguangToken');
         //添加退款通知
         if ($status == 1) {
             //确认退款
@@ -181,7 +182,6 @@ class Order extends ShopBase
             $res = $order_refund->save(['status' => 1, 'money' => input('money')]);
             $res1 = $order_refund->refundOrder($order_no);
             if($res && $res1){
-                $token = model('user')->where('id', $order['user_id'])->value('jiguangToken');
                 pushMess('您申请的退款订单已同意', ['id'=>$order_refund['order_id'], 'url'=>'', 'scene'=>'order_refund'], ["registration_id"=>["$token"]]);
                 model('order_refund')->commit();
                 exit_json(1, '操作成功');
@@ -190,9 +190,10 @@ class Order extends ShopBase
                 exit_json(-1, '退款失败');
             }
         } elseif ($status == 0) {
+            pushMess('您申请的退款订单已拒绝，请联系客服。', ['id'=>$order_refund['order_id'], 'url'=>'', 'scene'=>'order_refund'], ["registration_id"=>["$token"]]);
             //拒绝退款
             $order_refund->save(['status' => 2, 'reason' => input('reason')]);
-            model('order')->save(['is_apply_refund' => 3], ['order_no' => $order_no]);
+            model('order')->save(['is_apply_refund' => 3, 'order_status'=>1], ['order_no' => $order_no]);
             exit_json(1, '操作成功');
         } else {
             exit_json(-1, '参数错误');
