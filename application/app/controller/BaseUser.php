@@ -25,6 +25,7 @@ class BaseUser extends Controller
         if (!self::checkUser(input('userid'))) {
             exit_json(-1, '用户不存在');
         }
+        Log::error($_POST);
     }
 
     /**

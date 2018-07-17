@@ -36,11 +36,19 @@ class User extends Model
         $user = [];
         $coupon = new UserCoupon();
         $user['couponNum'] = $coupon->getCouponNum($userInfo['id']);
+        $user['orderNum'] = Order::getNum($userInfo['id']);
         $user['userid'] = $userInfo['id'];
         $user['logo'] = $userInfo['logo'];
         $user['username'] = $userInfo['username'];
         $user['rongyunToken'] = $userInfo['rongyunToken'];
-        $user['score'] = $userInfo['score'];
+        //重置积分
+        if($userInfo['card_id']){
+            $sixun = new SixunOpera();
+            $card = $sixun->getCardInfo($userInfo['card_id']);
+            $user['score'] = $card['acc_num']-$card['dec_num'];
+        }else{
+            $user['score'] = $userInfo['score'];
+        }
         $user['cardList'] = $userInfo['cardList'];
         $user['cardFlag'] = $userInfo['cardFlag'];
         $user['cost'] = $userInfo['cost'];

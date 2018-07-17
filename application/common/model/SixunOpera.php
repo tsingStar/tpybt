@@ -15,7 +15,7 @@ class SixunOpera
     private $sqlserver;
     private $error;
     const OPERA_ID = "1001";
-    const POSID = "APP";
+    const POSID = "0002";
     const PAY_WAY = "APP";
 
     public function __construct()
@@ -417,7 +417,7 @@ class SixunOpera
     //同步积分到思讯
     function set_core($allScore, $card_id)
     {
-        $back = $this->sqlserver->query("UPDATE t_rm_vip_info SET acc_num=" . $allScore . " WHERE card_id='" . $card_id . "'");
+        $back = $this->sqlserver->query("update t_rm_vip_consume set vip_acc_amount= $allScore where card_id='$card_id'");
         if ($back) {
             return true;
         } else {
@@ -508,7 +508,7 @@ class SixunOpera
             $posid = self::POSID;
             $is_jxc = "1";
             $real_date = $this->getMillSec();
-            $com_flag = null;
+            $shift_no = '0';
 
             //称重商品处理
             $prop = db('goods_prop')->where(['good_id' => $good['good_id'], 'id' => $good['good_prop']])->find();
@@ -518,7 +518,7 @@ class SixunOpera
             }
             $in_price = round($good_price['price'] * $sale_qnty, 4);
 
-            $sql_saleflow = "insert into t_rm_saleflow (flow_id, flow_no, branch_no, item_no, source_price, sale_price, sale_qnty, sale_money, sell_way, oper_id, sale_man, counter_no, oper_date, in_price, posid,is_jxc, real_date, flowno_rand, com_flag) values (" . $flow_id . ", '" . $flow_no . "', '" . $branch_no . "', '" . $gno . "', " . $source_price . ", " . $sale_price . ", " . $sale_qnty . ", " . $sale_money . ", '" . $sell_way . "', '" . $oper_id . "', '" . $sale_man . "', '" . $counter_no . "', '" . $oper_date . "', " . $in_price . ", '" . $posid . "', '" . $is_jxc . "', '" . $real_date . "', '" . $flowno_rand . "', '".$com_flag."')";
+            $sql_saleflow = "insert into t_rm_saleflow (flow_id, flow_no, branch_no, item_no, source_price, sale_price, sale_qnty, sale_money, sell_way, oper_id, sale_man, counter_no, oper_date, in_price, posid,is_jxc, real_date, flowno_rand, shift_no) values (" . $flow_id . ", '" . $flow_no . "', '" . $branch_no . "', '" . $gno . "', " . $source_price . ", " . $sale_price . ", " . $sale_qnty . ", " . $sale_money . ", '" . $sell_way . "', '" . $oper_id . "', '" . $sale_man . "', '" . $counter_no . "', '" . $oper_date . "', " . $in_price . ", '" . $posid . "', '" . $is_jxc . "', '" . $real_date . "', '" . $flowno_rand . "', '".$shift_no."')";
             $this->sqlserver->query($sql_saleflow); //添加
 
             //修改库存
@@ -548,7 +548,11 @@ class SixunOpera
         }
 
         //增加支付记录
-        $sql_payflow = "insert into t_rm_payflow (flow_id, flow_no, sale_amount, branch_no, pay_way, sell_way, vip_no, coin_no, coin_rate, pay_amount, oper_date, oper_id, counter_no, sale_man, posid, is_jxc, real_date, flowno_rand) values (1, '" . $flow_no . "', " . $order_total . ", '" . $branch_no . "', '" . config('sixun_pay')[$orderInfo['pay_type']] . "', 'A', '" . $card_id . "', 'RMB', 1.0000, " . $order_total . ", '" . $this->getMillSec() . "', '" . self::OPERA_ID . "', '" . $counter_no . "', '" . $sale_man . "', '" . self::POSID . "', '1', '" . $this->getMillSec() . "', '" . $flowno_rand . "')";
+//        if($orderInfo['pay_type'] == '3'){
+//            $sql_payflow = "insert into t_rm_payflow (flow_id, flow_no, sale_amount, branch_no, pay_way, sell_way, card_no, coin_no, coin_rate, pay_amount, oper_date, oper_id, counter_no, sale_man, posid, is_jxc, real_date, flowno_rand) values (1, '" . $flow_no . "', " . $order_total . ", '" . $branch_no . "', 'SAV', 'A', '" . $card_id . "', 'RMB', 1.0000, " . $order_total . ", '" . $this->getMillSec() . "', '" . self::OPERA_ID . "', '" . $counter_no . "', '" . $sale_man . "', '" . self::POSID . "', '1', '" . $this->getMillSec() . "', '" . $flowno_rand . "')";
+//        }else{
+            $sql_payflow = "insert into t_rm_payflow (flow_id, flow_no, sale_amount, branch_no, pay_way, sell_way, vip_no, coin_no, coin_rate, pay_amount, oper_date, oper_id, counter_no, sale_man, posid, is_jxc, real_date, flowno_rand) values (1, '" . $flow_no . "', " . $order_total . ", '" . $branch_no . "', '" . config('sixun_pay')[$orderInfo['pay_type']] . "', 'A', '" . $card_id . "', 'RMB', 1.0000, " . $order_total . ", '" . $this->getMillSec() . "', '" . self::OPERA_ID . "', '" . $counter_no . "', '" . $sale_man . "', '" . self::POSID . "', '1', '" . $this->getMillSec() . "', '" . $flowno_rand . "')";
+//        }
         $this->sqlserver->query($sql_payflow);
 
         //增加会员支付
@@ -608,7 +612,7 @@ class SixunOpera
     public function asyncVip($user)
     {
         $birthday = (date('Y')-$user['age']).'-'.$user['birthday'].' 00:00:00.000';
-        $sql = "UPDATE t_rm_vip_info SET vip_name='" . iconv('UTF-8', 'GBK', $user['username']) . "', birthday='".$birthday."' WHERE card_id='" . $user['card_id'] . "'";
+        $sql = 'UPDATE t_rm_vip_info SET vip_name="' . iconv('UTF-8', 'GBK', $user['username']) . '", birthday="'.$birthday.'" WHERE card_id="' . $user['card_id'] . '"';
         $this->sqlserver->query($sql);
     }
 
@@ -619,6 +623,12 @@ class SixunOpera
     {
         $sql = 'select a.*, b.item_name, b.sale_price from t_rm_vip_good a left join t_bd_item_info b on a.vg_no=b.item_no';
         return $this->sqlserver->getarr($sql);
+    }
+
+    public function setConsume($card_id, $min_num)
+    {
+        $sql = "update t_rm_vip_consume set vip_minus_total =vip_minus_total +$min_num where card_id='$card_id'";
+        $this->sqlserver->query($sql);
     }
 
 }

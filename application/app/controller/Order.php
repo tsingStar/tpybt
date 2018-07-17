@@ -424,7 +424,10 @@ class Order extends BaseUser
                 exit_json(-1, '当前订单不支持线上退款');
             }
             if ($order['is_apply_refund'] == 1) {
-                exit_json(1, '申请已提交，等待商家审核');
+                exit_json(-1, '申请已提交，等待商家审核');
+            }
+            if ($order['is_apply_refund'] != 0) {
+                exit_json(-1, '退款申请已处理，请联系客服');
             }
             $order->save(['order_status' => 2, 'is_apply_refund' => 1]);
             model('order_refund')->save([

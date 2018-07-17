@@ -121,7 +121,7 @@ class Order extends Model
             $sixun = new SixunOpera();
             $card_id = \model('user')->where('id', $order['user_id'])->value('card_id');
             $vip = $sixun->getCardInfo($card_id);
-            $cost = $vip['cost']-$order['real_cost'];
+            $cost = $vip['cost'] - $order['real_cost'];
             $sixun->set_residual_amt($cost, $card_id);
         } else {
             $res = $this->save([
@@ -139,23 +139,32 @@ class Order extends Model
             $o = $this->where('order_no', $orderInfo['order_no'])->find();
             //增加金额变动记录
             $moneyLog = new MoneyLog();
-            $moneyLog->writeLog($o['user_id'], -$o['real_cost'], config('pay_type')[$o['pay_type']], $o['shop_name'].'-订单支付', $o['order_no']);
+            $moneyLog->writeLog($o['user_id'], -$o['real_cost'], config('pay_type')[$o['pay_type']], $o['shop_name'] . '-订单支付', $o['order_no']);
             MoneyLogMonth::addLog($o['user_id'], date('Y-m'), $o['real_cost'], 'dec');
             //订单支付成功处理赠送积分等
             PayResultOther::setScore($o);
 
-
-
-
-
-
+            //处理订单商品库存
+            $det = new OrderDet();
+            $det->decGoods($o['order_no']);
 
             return true;
         } else {
             return false;
         }
+    }
 
-
+    /**
+     * 获取订单数量
+     * @param $user_id
+     * @return array
+     */
+    public static function getNum($user_id)
+    {
+        $total = self::where(['user_id'=>$user_id, 'is_del'=>0])->count();
+        $receive= self::where(['user_id'=>$user_id, 'pay_status'=>1, 'is_send'=>1, 'sure_time'=>'', 'is_del'=>0])->count();
+        $pay = self::where(['user_id'=>$user_id, 'pay_status'=>0, 'order_status'=>0, 'is_del'=>0])->count();
+        return ['total' => $total, 'receive' => $receive, 'pay' => $pay];
     }
 
 }

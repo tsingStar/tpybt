@@ -9,6 +9,7 @@
 namespace app\common\model;
 
 
+use think\Log;
 use think\Model;
 
 class OrderDet extends Model
@@ -63,7 +64,29 @@ class OrderDet extends Model
             $data[] = $temp;
         }
         return $data;
-        
+    }
+
+    /**
+     * 库存修改
+     */
+    public function decGoods($order_no)
+    {
+        if(!$order_no){
+            return false;
+        }else{
+            $list = $this->where('order_no', $order_no)->select();
+            try{
+                foreach ($list as $val){
+                    if($val['good_prop']>0){
+                        \model('goods_prop')->where(['id', $val['good_prop']])->setDec('num', $val['num']);
+                    }else{
+                        \model('goods')->where('id', $val['good_id'])->setDec('count', $val['num']);
+                    }
+                }
+            }catch (\Exception $e){
+                Log::error('库存减少异常'.$e->getMessage());
+            }
+        }
     }
 
 

@@ -39,7 +39,7 @@ class Jpush{
             //发送通知
             $data['notification'] = array(//状态栏显示形式的通知
                 //统一的模式--标准模式
-                "alert"=>$content,
+//                "alert"=>$content,
                 //安卓自定义
                 "android"=>array(
                     "alert"=>$content,
@@ -66,7 +66,7 @@ class Jpush{
         $data['options'] = array(
             "sendno"=>time(),
             "time_to_live"=>$m_time,      //保存离线时间的秒数默认为一天
-            "apns_production"=>0,        //指定 APNS 通知发送环境：0开发环境，1生产环境。
+            "apns_production"=>false,        //指定 APNS 通知发送环境：0开发环境，1生产环境。
         );
         $param = json_encode($data);
         $res = $this->push_curl($param,$header);

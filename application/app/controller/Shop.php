@@ -12,6 +12,7 @@ namespace app\app\controller;
 
 use app\common\model\Goods;
 use app\common\model\ShopCate;
+use app\common\model\SixunOpera;
 use app\common\model\Swiper;
 use think\Log;
 
@@ -418,11 +419,14 @@ class Shop extends BaseUser
             model('user')->startTrans();
             try{
                 $user = model('user')->where('id', USER_ID)->find();
-                if($user['score']<$gift['score']){
+                $sixun = new SixunOpera();
+                $cardInfo = $sixun->getCardInfo($user['card_id']);
+                if($cardInfo['acc_num']-$cardInfo['dec_num']<$gift['score']){
                     exit_json(-1, '积分不足');
                 }else{
-                    $res1 = $user->setDec('score', $gift['score']);
+//                    $res1 = $user->setDec('score', $gift['score']);
                     model('score_log')->save(['score'=>$gift['score'], 'type'=>2, 'user_id'=>USER_ID, 'desc'=>'积分兑换商品']);
+                    $sixun->setConsume($card_id, $min_num);
                 }
                 $res = model('order_score')->save(['good_id'=>$good_id, 'address'=>$address, 'name'=>$name, 'telephone'=>$telephone,'remarks'=>$remarks, 'user_id'=>USER_ID, 'shop_id'=>$gift['shop_id']]);
             }catch (\Exception $e){
