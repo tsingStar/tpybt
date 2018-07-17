@@ -522,16 +522,16 @@ class SixunOpera
             $this->sqlserver->query($sql_saleflow); //添加
 
             //修改库存
-            if ($g['combine_sta'] == 1) {
-                $sql_combine = "select * from t_bd_item_combsplit where comb_item_no='" . $gno . "'";
-                $comb = $this->sqlserver->select_one($sql_combine);
-                $split_no = $comb['item_no'];
-                $split_num = $comb['item_qty'];
-                $sql_stock = "update t_im_branch_stock set stock_qty=stock_qty-$split_num*$sale_qnty where item_no='" . $split_no . "' and branch_no='" . $branch_no . "'";
-            } else {
-                $sql_stock = "update t_im_branch_stock set stock_qty=stock_qty-$sale_qnty where item_no='" . $gno . "' and branch_no='" . $branch_no . "'";
-            }
-            $this->sqlserver->query($sql_stock);
+//            if ($g['combine_sta'] == 1) {
+//                $sql_combine = "select * from t_bd_item_combsplit where comb_item_no='" . $gno . "'";
+//                $comb = $this->sqlserver->select_one($sql_combine);
+//                $split_no = $comb['item_no'];
+//                $split_num = $comb['item_qty'];
+//                $sql_stock = "update t_im_branch_stock set stock_qty=stock_qty-$split_num*$sale_qnty where item_no='" . $split_no . "' and branch_no='" . $branch_no . "'";
+//            } else {
+//                $sql_stock = "update t_im_branch_stock set stock_qty=stock_qty-$sale_qnty where item_no='" . $gno . "' and branch_no='" . $branch_no . "'";
+//            }
+//            $this->sqlserver->query($sql_stock);
 
             //更改单品日销售记录
             /*

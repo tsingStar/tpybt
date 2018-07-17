@@ -497,9 +497,9 @@ class Products extends ShopBase
         foreach ($data as $key => $val) {
             $res = model('goods')->save(['count' => $val], ['gno' => $key, 'shop_id' => SHOP_ID]);
             if ($res) {
-                $count+=$val;
+                $count += $val;
             } else {
-                $fail-=$val;
+                $fail -= $val;
             }
         }
         exit_json(1, "成功上架" . $count . "件商品，失败" . $fail . "件商品");
@@ -641,16 +641,37 @@ class Products extends ShopBase
     {
         $active_id = input('active_id');
         $act = db('sec_active')->where('id', $active_id)->find();
+        $status = input('status') == 0 ? 1 : 0;
         if (!$act['start_time'] || !$act['end_time']) {
             exit_json(0);
         } else {
-            $res = db('sec_active')->where('id', $active_id)->update(['status' => 1]);
+            $res = db('sec_active')->where('id', $active_id)->update(['status' => $status]);
             if ($res) {
                 exit_json();
             } else {
                 exit_json(-1);
             }
         }
+    }
+
+    /**
+     * 删除活动
+     */
+    public function delSecActive()
+    {
+        $active_id = input('idstr');
+        if (!$active_id) {
+            exit_json(-1, '条目不存在');
+        } else {
+
+            $res = db('sec_active')->where('id','in', $active_id)->delete();
+            if ($res) {
+                exit_json();
+            } else {
+                exit_json(-1, '操作失败');
+            }
+        }
+
     }
 
     /**

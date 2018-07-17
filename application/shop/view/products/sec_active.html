@@ -29,7 +29,7 @@
                 {foreach $list as $good}
                 <tr class="text-c va-m">
                     <td><input name="id" type="checkbox" value="{$good.id}"></td>
-                    <td>{$good.good_id}</td>
+                    <td>{$good.id}</td>
                     <td>{$good.gno}</td>
                     <td class="text-c">
                         {$good.name}
@@ -120,7 +120,7 @@
     /*产品-删除*/
     function product_del(obj, id) {
         layer.confirm('确认要删除吗？', function (index) {
-            $.post("{:url('Products/delData')}", {idstr: id}, function (res) {
+            $.post("{:url('Products/delSecActive')}", {idstr: id}, function (res) {
                 if (res.code == 1) {
                     layer.msg('删除成功');
                     $(obj).parents('tr').remove();
