@@ -323,7 +323,7 @@ class SixunOpera
             return [];
         }
 
-        $vipList = $this->sqlserver->getarr("select * from t_rm_vip_info where mobile='" . $telephone . "'");
+        $vipList = $this->sqlserver->getarr("select * from t_rm_vip_info where mobile='" . $telephone . "' or vip_tel='".$telephone."'");
         $vipArr = [];
         if (count($vipList) > 0) {
             foreach ($vipList as $item) {
