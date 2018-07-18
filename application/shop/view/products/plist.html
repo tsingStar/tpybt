@@ -175,9 +175,20 @@
             {"orderable": false, "aTargets": [0, 11]}// 制定列不参与排序
         ]
     });
-    //设置积分兑换商品
-    function changeScore() {
-        
+    
+    function saveRem(o, good_id) {
+        var num = $(o).prev('input').val();
+        if(num<0){
+            layer.msg('库存数量不合法');
+        }
+        $.post('{:url("set_combine_num")}', {id:good_id, num:num},function (res) {
+            if(res.code == 1){
+                layer.msg('操作成功');
+            }
+            setTimeout(function () {
+                //location.reload()
+            }, 888);
+        })
     }
     // 设置商品活动类型
     function set_active(good_id){

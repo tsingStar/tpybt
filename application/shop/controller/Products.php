@@ -471,6 +471,23 @@ class Products extends ShopBase
         return $this->fetch('plist');
     }
 
+    public function set_combine_num()
+    {
+        $good_id = input('id');
+        $num = input('num');
+        if ($num < 0) {
+            exit_json(-1, '库存数量只能为数字');
+        } else {
+            $res = model('goods')->where('id', $good_id)->find()->save(['count' => $num]);
+            if ($res) {
+                exit_json();
+            } else {
+                exit_json(-1, '保存失败');
+            }
+        }
+
+    }
+
     /**
      * 批量下架整箱商品
      */
@@ -664,7 +681,7 @@ class Products extends ShopBase
             exit_json(-1, '条目不存在');
         } else {
 
-            $res = db('sec_active')->where('id','in', $active_id)->delete();
+            $res = db('sec_active')->where('id', 'in', $active_id)->delete();
             if ($res) {
                 exit_json();
             } else {
