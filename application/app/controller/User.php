@@ -61,7 +61,7 @@ class User extends BaseUser
         if ($file) {
             $headPath = __UPLOAD__ . '/headImg';
             $res = $file->move($headPath, md5(USER_ID));
-            $headImg = '/upload/headImg/' . $res->getSaveName();
+            $headImg = '/upload/headImg/' . $res->getSaveName() . '?time=' . time();
             $data['logo'] = $headImg;
         }
         unset($data['userid']);
@@ -245,6 +245,9 @@ class User extends BaseUser
         if (!$trade_password) {
             exit_json(-1, '交易密码不能为空');
         } else {
+            if(strlen($trade_password) != 6 || !preg_match("/^\d{6}$/", $trade_password)){
+                exit_json(-1, '请输入有效六位数字');
+            }
             $data = ['trade_password' => md5($trade_password)];
             $u = model('user')->where('id', USER_ID)->find();
             if ($u['trade_password'] == md5($trade_password)) {
@@ -273,19 +276,21 @@ class User extends BaseUser
         if (!$new_password || !$old_password) {
             exit_json(-1, '参数为空');
         }
+        if(strlen($new_password) != 6 || !preg_match("/^\d{6}$/", $new_password)){
+            exit_json(-1, '请输入有效六位数字');
+        }
+        $user = model('user')->where(['id' => USER_ID, 'trade_password' => md5($old_password)])->find();
+        if (!$user['id']) {
+            exit_json(-1, '密码错误');
+        }
         if ($new_password == $old_password) {
             exit_json(1, '设置成功');
         } else {
-            $user = model('user')->where(['id' => USER_ID, 'trade_password' => md5($old_password)])->find();
-            if (!$user['id']) {
-                exit_json(-1, '密码错误');
+            $res = model('user')->allowField(true)->save(['trade_password' => md5($new_password)], ['id' => USER_ID]);
+            if ($res) {
+                exit_json(1, '设置成功');
             } else {
-                $res = model('user')->allowField(true)->save(['trade_password' => md5($new_password)], ['id' => USER_ID]);
-                if ($res) {
-                    exit_json(1, '设置成功');
-                } else {
-                    exit_json(-1, '设置失败');
-                }
+                exit_json(-1, '设置失败');
             }
         }
 
@@ -314,10 +319,10 @@ class User extends BaseUser
         if ($old_password == $new_password) {
             exit_json(1, '设置成功');
         }
-        if ($user['password'] != md5($old_password)) {
+        if ($user['password'] != $old_password) {
             exit_json(-1, '原始密码错误');
         }
-        $res = model('user')->save(['password' => md5($new_password)], ['id' => USER_ID]);
+        $res = model('user')->save(['password' => $new_password], ['id' => USER_ID]);
         if ($res) {
             exit_json();
         } else {
@@ -405,7 +410,7 @@ class User extends BaseUser
             $temp['desc'] = $value['desc'];
             $temp['create_time'] = $value['create_time'];
             $temp['month'] = date('m', strtotime($value['create_time']));
-            $temp['money'] = '￥ '.$value['money'];
+            $temp['money'] = '￥ ' . $value['money'];
             $temp['type'] = $value['type'];
             $moneyAll = MoneyLogMonth::getMonthMoney(date('Y-m', strtotime($value['create_time'])), USER_ID);
             $temp = array_merge($temp, $moneyAll);
@@ -469,9 +474,9 @@ class User extends BaseUser
         $shop_phone = model('shop')->where('id', $shop_id)->value('phone');
         $data = db('web_contact_us')->find();
         exit_json(1, '请求成功', [
-            'phone'=>$data['telephone'],
-            'complaints_phone'=>$data['complaints_phone'],
-            'shop_phone'=>$shop_phone
+            'phone' => $data['telephone'],
+            'complaints_phone' => $data['complaints_phone'],
+            'shop_phone' => $shop_phone
         ]);
     }
 

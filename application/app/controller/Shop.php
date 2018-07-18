@@ -426,7 +426,7 @@ class Shop extends BaseUser
                 }else{
 //                    $res1 = $user->setDec('score', $gift['score']);
                     model('score_log')->save(['score'=>$gift['score'], 'type'=>2, 'user_id'=>USER_ID, 'desc'=>'积分兑换商品']);
-                    $sixun->setConsume($card_id, $min_num);
+                    $sixun->setConsume($user['card_id'], $gift['score']);
                 }
                 $res = model('order_score')->save(['good_id'=>$good_id, 'address'=>$address, 'name'=>$name, 'telephone'=>$telephone,'remarks'=>$remarks, 'user_id'=>USER_ID, 'shop_id'=>$gift['shop_id']]);
             }catch (\Exception $e){

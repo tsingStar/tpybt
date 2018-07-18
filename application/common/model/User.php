@@ -40,7 +40,16 @@ class User extends Model
         $user['userid'] = $userInfo['id'];
         $user['logo'] = $userInfo['logo'];
         $user['username'] = $userInfo['username'];
-        $user['rongyunToken'] = $userInfo['rongyunToken'];
+
+        //重置用户融云信息
+        if(!$userInfo['rongyunToken']){
+            $rongYun = new RongYun();
+            $token = $rongYun->getToken('vip' . $userInfo['id'], $userInfo['username']?:$userInfo['phone'], $userInfo['logo']?:config('default_img'));
+            $this->save(['rongyunToken'=>$token], ['id'=>$userInfo['id']]);
+            $user['rongyunToken'] = $token;
+        }else{
+            $user['rongyunToken'] = $userInfo['rongyunToken'];
+        }
         //重置积分
         if($userInfo['card_id']){
             $sixun = new SixunOpera();
@@ -59,6 +68,7 @@ class User extends Model
         $user['card_no'] = $userInfo['card_no'];
         $user['card_id'] = $userInfo['card_id'];
         $user['create_time'] = $userInfo['creattime'];
+        $user['telephone'] = $userInfo['phone'];
         return $user;
     }
 

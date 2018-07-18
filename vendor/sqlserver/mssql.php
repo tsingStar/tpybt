@@ -176,7 +176,6 @@ class mssql{
 
         $error = "Mysql_error：".mysql_error()."(".mysql_errno().")";
         $error .= $sql == "" ? "" : "Sql：'{$sql}'";
-        \think\Log::write($error);
         return false;
     }
     //析构函数关闭数据库

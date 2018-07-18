@@ -331,7 +331,8 @@ class SixunOpera
                     'card_id' => $item['card_id'],
                     'card_no' => $item['card_flowno'],
                     'remain_cost' => $this->money_decode($item['residual_amt']),
-                    'remain_score' => $item['acc_num']
+                    'remain_score' => $item['acc_num'],
+                    'card_name'=>iconv('GBK', 'UTF-8', $item['vip_name'])
                 ];
             }
         }
@@ -629,6 +630,14 @@ class SixunOpera
     {
         $sql = "update t_rm_vip_consume set vip_minus_total =vip_minus_total +$min_num where card_id='$card_id'";
         $this->sqlserver->query($sql);
+    }
+
+    /**
+     * 获取组合商品子商品
+     */
+    public function getChildGood($combineNo)
+    {
+        return $this->sqlserver->select_one("select * from t_bd_item_combsplit where comb_item_no='".$combineNo."'");
     }
 
 }
