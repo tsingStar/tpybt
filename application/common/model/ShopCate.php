@@ -62,6 +62,7 @@ class ShopCate extends Model
         $cid = explode(',', $ids);
         $ids = $this->where('parent_id', 'in', $cid)->column('id');
         $ids = array_merge($cid, $ids);
+        \model('goods')->where('cate_id', 'in', $ids)->delete();
         return $this->where('id', 'in', $ids)->delete();
     }
 

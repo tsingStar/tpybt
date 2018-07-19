@@ -42,7 +42,7 @@ class ShopBase extends Controller
             if(cookie('shop_id') && cookie('shop_pwd')){
                 $shop = model('shop')->where([
                     'id'=>cookie('shop_id'),
-                    'shop_pwd'=>cookie('shop_pwd')
+                    'password'=>cookie('shop_pwd')
                 ])->find();
                 if($shop){
                     session(config('shopkey'), $shop['id']);

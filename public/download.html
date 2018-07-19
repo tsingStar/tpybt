@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>易贝通</title>
+    <link rel="stylesheet" href="swiper/dist/css/swiper.min.css">
+    <style>
+        #weixin-tip {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: rgba(0, 0, 0, 0.8);
+            filter: alpha(opacity=80);
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+        }
+
+        #weixin-tip p {
+            text-align: center;
+            margin-top: 10%;
+            padding: 0 5%;
+            position: relative;
+        }
+
+        #weixin-tip .close {
+            color: #fff;
+            padding: 5px;
+            font: bold 20px/24px simsun;
+            text-shadow: 0 1px 0 #ddd;
+            position: absolute;
+            top: 0;
+            left: 5%;
+        }
+
+        .head {
+            background-color: #F0D383;
+            height: auto;
+            overflow: hidden;
+        }
+
+        .head dl {
+            float: left;
+        }
+
+        .head div {
+            float: right;
+        }
+
+        .swiper {
+            padding: 50px;
+        }
+
+        .footer {
+            text-align: center;
+        }
+
+        .abstract {
+            padding: 50px;
+            text-align: left;
+            text-indent: 2em;
+        }
+
+        .btn {
+            display: block;
+            background-color: #00a0e9;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 32px;
+            margin: 10px;
+            font-weight: bold;
+            text-decoration: none;
+            color: white;
+        }
+        .abstract{
+            font-size: 30px;
+            padding-left: 10%;
+            padding-right: 10%;
+        }
+    </style>
+</head>
+<body>
+<div class="head">
+    <dl style="overflow: hidden; margin-left: 20px;">
+        <dt style="float: left;"><img src="tuiguang/logo.png" alt=""></dt>
+        <div style="float: right; width: 200px; height: 200px;">
+            <dd style="margin-top: 60px; height: 40px; font-size: 42px; margin-bottom: 10px;">易贝通</dd>
+            <dd style="font-size: 25px;">生活便利专家</dd>
+        </div>
+    </dl>
+    <div style="float: right; margin-right: 5%; padding-top: 40px;">
+        <a href="http://ceshi.ybt9.com/ybt.apk" class="btn" onclick="openApp(this)">安卓下载</a>
+        <a href="https://itunes.apple.com/cn/app/id1180523597" class="btn" onclick="openApp(this)">苹果下载</a>
+    </div>
+</div>
+<div class="title">
+    <img src="tuiguang/mid.jpg" style="width: 100%;">
+</div>
+
+<div class="swiper">
+    <div class="swiper-container">
+        <div class="swiper-wrapper">
+            <div class="swiper-slide"><img src="tuiguang/swiper1.jpg" alt="" style="width: 100%;"></div>
+            <div class="swiper-slide"><img src="tuiguang/swiper2.jpg" alt="" style="width: 100%;"></div>
+            <div class="swiper-slide"><img src="tuiguang/swiper3.jpg" alt="" style="width: 100%;"></div>
+            <div class="swiper-slide"><img src="tuiguang/swiper4.jpg" alt="" style="width: 100%;"></div>
+            <div class="swiper-slide"><img src="tuiguang/swiper5.jpg" alt="" style="width: 100%;"></div>
+            <div class="swiper-slide"><img src="tuiguang/swiper6.jpg" alt="" style="width: 100%;"></div>
+        </div>
+    </div>
+</div>
+<div class="abstract">
+    <p>企业介绍：易贝通便利店连锁隶属于北京易贝通商贸有限公司，是一家以O2O连锁便利店特许加盟为的创新型电商商贸企业。易贝通总部位于北京，山东临沂为加盟连锁全国运营中心，目前加盟便利店从北京、山东逐步向全国布局。</p>
+
+    <p>
+        品牌优势：易贝通拥有优秀的创新品牌、成功的市场模式、高效的系统管理、专业的管理团队、有效的策划推广、完善的售后服务。在品牌推广、市场运营、设计装饰、信息化管理、采购管理、物流管理等方面投入巨资，为广大加盟店面提供快速、优质、高效的服务。</p>
+
+    <p>
+        先进系统：易贝通十分重视经营管理和服务的标准化、信息化、智能化，先进的报单系统和POS收银管理系统，实现了加盟门店前台销售、退货、盘点、订货、自动补货、配货、结报、自动结算等智能化管理，大幅节省管理和人工成本，显著提升门店经营效益。</p>
+
+    <p>品牌推广：易贝通品牌会通过新闻媒体、公益活动、异业联合、战略合作、营销推广等各种宣传推广形式塑造易贝通品牌形象。</p>
+
+    <p>优秀团队：易贝通拥有一支专业化、年轻化、高素质、创新型的优秀管理团队，为O2O加盟连锁事业提供全方位、立体化的优质服务。</p>
+
+    <p>易贝通秉承“互联网+连锁超市”的发展模式和“爱生活、爱分享”的品牌理念，抓住趋势、勇于创新、不断进取，为打造中国领先的O2O加盟连锁品牌而不懈努力!</p>
+
+</div>
+
+<div class="footer">
+    <span>
+        版权所有@北京易贝通商贸有限公司 ybt9.com
+    </span>
+</div>
+<!-- a标签的链接，设置为对应的下载链接；点击打开的动作，在click事件中注册 -->
+<div id="weixin-tip"><p><img src="wx_tips.png" alt="微信打开"/><span id="close" title="关闭" class="close">×</span></p></div>
+</body>
+<script src="static/lib/jquery/1.9.1/jquery.min.js"></script>
+<script src="swiper/dist/js/swiper.js"></script>
+<script src="swiper/dist/js/swiper.min.js"></script>
+<script>
+    var mySwiper = new Swiper('.swiper-container', {
+        direction: 'horizontal',
+        loop: true,
+        autoplay: true,
+        delay: 1000,
+        effect: 'coverflow',
+        slidesPerView: 1,
+        centeredSlides: true,
+        coverflowEffect: {
+            rotate: 40,
+            stretch: 50,
+            depth: 10,
+            modifier: 2,
+            slideShadows: true
+        },
+    })
+</script>
+<script type="text/javascript">
+
+    function browserRedirect() {
+        var sUserAgent = navigator.userAgent.toLowerCase();
+        var bIsIpad = sUserAgent.match(/ipad/i) == "ipad";
+        var bIsIphoneOs = sUserAgent.match(/iphone os/i) == "iphone os";
+        var bIsMidp = sUserAgent.match(/midp/i) == "midp";
+        var bIsUc7 = sUserAgent.match(/rv:1.2.3.4/i) == "rv:1.2.3.4";
+        var bIsUc = sUserAgent.match(/ucweb/i) == "ucweb";
+        var bIsAndroid = sUserAgent.match(/android/i) == "android";
+        var bIsCE = sUserAgent.match(/windows ce/i) == "windows ce";
+        var bIsWM = sUserAgent.match(/windows mobile/i) == "windows mobile";
+        if (bIsAndroid) {
+            return 'android';
+        }
+        if (bIsIpad || bIsIphoneOs) {
+            return 'iphone';
+        }
+    }
+
+    var winHeight = typeof window.innerHeight != 'undefined' ? window.innerHeight : document.documentElement.clientHeight;
+    var tip = document.getElementById('weixin-tip');
+    var close = document.getElementById('weixin-tip');
+
+    function openApp(o) {
+        var is_weixin = (function () {
+            return navigator.userAgent.toLowerCase().indexOf('micromessenger') !== -1
+        })();
+        alert("12312");
+        if (is_weixin) {
+            o.onclick = function (e) {
+                tip.style.height = winHeight + 'px';
+                tip.style.display = 'block';
+                return false;
+            }
+            close.onclick = function () {
+                tip.style.display = 'none';
+            }
+        } else {
+            var hasApp = true , t = 1000;
+            setTimeout(function () {  //没有安装APP则跳转至应用宝下载，延时时间设置为2秒
+                if(!hasApp) return false;
+            } , 2000);
+            var t1 = Date.now();
+            window.location.href = "ybtprject://com.ybt9.www";
+            setTimeout(function () {    //t的时间就是出发APP启动的时间，若APP启动了，再次返回页面时t2这行代码执行，hasApp即为true。反之若APP没有启动即为false
+                var t2 = Date.now();
+                hasApp = !(!t1 || t2 - t1 < t + 150);
+                return true;
+            } , t);
+        }
+    }
+</script>
+</html>

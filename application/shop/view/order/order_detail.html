@@ -91,6 +91,7 @@
                     <thead>
                     <tr class="text-c">
                         <td>商品名称</td>
+                        <td>商品货号</td>
                         <td>规格</td>
                         <td>原价</td>
                         <td>售价</td>
@@ -102,6 +103,7 @@
                     {foreach $good_list as $good}
                     <tr class="text-c">
                         <td>{$good.good_name}</td>
+                        <td>{$good.gno}</td>
                         <td>{$good.prop_name}</td>
                         <td>{$good.sale_price}</td>
                         <td>{$good.cost}</td>

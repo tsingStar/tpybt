@@ -238,7 +238,7 @@ class SixunOpera
         //获取分店商品价格
         //获取店铺所选商品分类
         $cateModel = new ShopCate();
-        $cateArr = $cateModel->where('parent_id', '>', 0)->column('orignal_id, id');
+        $cateArr = $cateModel->where(['parent_id'=>['>', 0], 'shop_id'=>$shop_id])->column('orignal_id, id');
         //循环处理添加商品
         foreach ($goodsArr as $item) {
             $item_no = trim(iconv('GBK', 'UTF-8', $item['item_no']));
@@ -255,10 +255,11 @@ class SixunOpera
             }
             if (isset($cateArr[$item_clsno])) {
                 $goodsModel = new Goods();
-                $res = $goodsModel->where('gno', $item_no)->find();
+                $res = $goodsModel->where(['gno'=>$item_no, 'shop_id'=>$shop_id])->find();
                 $data['gno'] = $item_no;
                 $data['cate_id'] = $cateArr[$item_clsno];
-                $data['name'] = trim(iconv('GBK', 'UTF-8', $item['item_name']));
+                $data['name'] = trim(mb_convert_encoding($item['item_name'], 'UTF-8', 'GBK'));
+//                $data['name'] = trim(iconv('GBK', 'UTF-8', $item['item_name']));
                 $data['sale_price'] = trim(iconv('GBK', 'UTF-8', $item['sale_price']));
                 $data['active_price'] = trim(iconv('GBK', 'UTF-8', $item['sale_price']));
                 $data['goodattr'] = $unit_no;
@@ -286,6 +287,12 @@ class SixunOpera
                 }
                 $data['instro'] = join('', $instroImg);
                 if ($res) {
+                    if($bulk_package == 1){
+                        $props = model('goods_prop')->where(['good_id'=>$res['id'], 'num'=>['gt', 0]])->select();
+                        if(!$props){
+                            $data['is_live'] = 0;
+                        }
+                    }
                     //更新商品信息
                     $goodsModel->isUpdate(true)->save($data, ['id' => $res['id']]);
                 } else {
@@ -329,10 +336,10 @@ class SixunOpera
             foreach ($vipList as $item) {
                 $vipArr[] = [
                     'card_id' => $item['card_id'],
-                    'card_no' => $item['card_flowno'],
+                    'card_no' => $item['card_flowno']?$item['card_flowno']:"",
                     'remain_cost' => $this->money_decode($item['residual_amt']),
                     'remain_score' => $item['acc_num'],
-                    'card_name'=>iconv('GBK', 'UTF-8', $item['vip_name'])
+                    'card_name'=>iconv('GBK', 'UTF-8', $item['vip_name'])?iconv('GBK', 'UTF-8', $item['vip_name']):""
                 ];
             }
         }

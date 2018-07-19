@@ -436,6 +436,7 @@ class Products extends ShopBase
         $where = array_merge(['shop_id' => SHOP_ID, 'bulk_package' => 1], $extra);
         $goods_list = model('goods')->where($where)->select();
         $cat_list = model('shop_cate')->where('shop_id', SHOP_ID)->column('name', 'id');
+
 //        $active_list = db('active')->where('is_open', 1)->column('active_name', 'id');
 //        $active_list[0] = '普通商品';
         $active_list = config('active');

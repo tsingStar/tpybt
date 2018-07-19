@@ -236,7 +236,7 @@ class User extends Model
             'ip' => getIp()
         ];
         $date = date('Y-m-d', time());
-        $sign = $signModel->where('userid', USER_ID)->order('create_time')->find();
+        $sign = $signModel->where('userid', USER_ID)->order('create_time desc')->find();
         if ($sign && $date == $sign['create_time']) {
             $this->error = '今日已签到';
             return false;

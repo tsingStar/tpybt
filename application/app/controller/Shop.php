@@ -343,7 +343,7 @@ class Shop extends BaseUser
     public function getCombineGoods()
     {
         $shop_id = input('shop_id');
-        $list = model('goods')->alias('a')->join('shop_cate b', 'a.cate_id=b.id')->field('a.*, b.name cate_name')->where(['a.shop_id'=>$shop_id, 'a.combine_sta'=>1, 'a.active_id'=>0])->select();
+        $list = model('goods')->alias('a')->join('shop_cate b', 'a.cate_id=b.id')->field('a.*, b.name cate_name')->where(['a.shop_id'=>$shop_id, 'a.combine_sta'=>1, 'a.active_id'=>0, 'a.is_live'=>1])->select();
         $data = [];
         foreach ($list as $v){
             $data[$v['cate_name']][] = model('goods')->formatOne($v);

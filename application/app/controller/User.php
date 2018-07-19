@@ -93,7 +93,7 @@ class User extends BaseUser
             exit_json(1, '请求成功', ['message' => '签到成功']);
         } else {
             $msg = $this->userModel->getError();
-            exit_json(1, '请求成功', ['message' => '今日已签到']);
+            exit_json(-1, '请求成功', ['message' => '今日已签到']);
         }
     }
 
@@ -245,9 +245,9 @@ class User extends BaseUser
         if (!$trade_password) {
             exit_json(-1, '交易密码不能为空');
         } else {
-            if(strlen($trade_password) != 6 || !preg_match("/^\d{6}$/", $trade_password)){
-                exit_json(-1, '请输入有效六位数字');
-            }
+//            if(strlen($trade_password) != 6 || !preg_match("/^\d{6}$/", $trade_password)){
+//                exit_json(-1, '请输入有效六位数字');
+//            }
             $data = ['trade_password' => md5($trade_password)];
             $u = model('user')->where('id', USER_ID)->find();
             if ($u['trade_password'] == md5($trade_password)) {
@@ -276,9 +276,9 @@ class User extends BaseUser
         if (!$new_password || !$old_password) {
             exit_json(-1, '参数为空');
         }
-        if(strlen($new_password) != 6 || !preg_match("/^\d{6}$/", $new_password)){
-            exit_json(-1, '请输入有效六位数字');
-        }
+//        if(strlen($new_password) != 6 || !preg_match("/^\d{6}$/", $new_password)){
+//            exit_json(-1, '请输入有效六位数字');
+//        }
         $user = model('user')->where(['id' => USER_ID, 'trade_password' => md5($old_password)])->find();
         if (!$user['id']) {
             exit_json(-1, '密码错误');
