@@ -419,7 +419,7 @@
             layer.confirm('确定添加条码为'+props+"?", function(){
                 layer.load();
                 $.post("{:url('Products/scanLoad')}", {props:props}, function(res){
-                    layer.alert('成功添加'+res.msg+'个条码', function(){
+                    layer.alert(res.msg, function(){
                         layer.closeAll();
                         location.reload();
                     });

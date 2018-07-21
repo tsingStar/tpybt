@@ -10,6 +10,7 @@
 namespace app\shop\controller;
 
 
+use app\common\model\GoodsProp;
 use app\common\model\Shop;
 use app\common\model\ShopCate;
 use app\common\model\Goods;
@@ -343,7 +344,7 @@ class Products extends ShopBase
                     }
                 }
                 unset($data['prop']);
-            }else{
+            } else {
                 db('goods_prop')->where('good_id', $data['id'])->delete();
             }
             $res = $productModel->allowField(true)->save($data, ['id' => $data['id']]);
@@ -482,9 +483,9 @@ class Products extends ShopBase
             exit_json(-1, '库存数量只能为数字');
         } else {
             $data['count'] = $num;
-            if($num == 0){
+            if ($num == 0) {
                 $data['is_live'] = 0;
-            }else{
+            } else {
                 $data['is_live'] = 1;
             }
             $res = model('goods')->where('id', $good_id)->find()->save($data);
@@ -519,16 +520,22 @@ class Products extends ShopBase
         $gno_arr = explode("\n", $gnos);
         $data = array_count_values($gno_arr);
         $count = 0;
-        $fail = 0;
+        $fail = '';
         foreach ($data as $key => $val) {
-            $res = model('goods')->save(['count' => $val, 'is_live'=>1], ['gno' => $key, 'shop_id' => SHOP_ID]);
+//            $res = model('goods')->save(['count' => 'count+'.$val, 'is_live'=>1], ['gno' => $key, 'shop_id' => SHOP_ID]);
+            $good = model('goods')->where(['gno' => $key, 'shop_id' => SHOP_ID])->find();
+            if (!$good) {
+                $fail .= '货号' . $key . '商品不存在。';
+                continue;
+            }
+            $res = $good->save(['count' => $good['count'] + $val, 'is_live' => 1]);
             if ($res) {
                 $count += $val;
             } else {
-                $fail -= $val;
+                $fail .= '货号' . $key . '商品上架失败';
             }
         }
-        exit_json(1, "成功上架" . $count . "件商品，失败" . $fail . "件商品");
+        exit_json(1, "成功上架" . $count . "件商品，" . $fail);
     }
 
     /**
@@ -728,9 +735,10 @@ class Products extends ShopBase
             $price = sprintf('%.2f', $price / 100);
             $discount = model('shop')->where('id', SHOP_ID)->value('discount');
             $active_price = $price * $discount;
-            $res = model('goods_prop')->save(['good_id' => $good['id'], 'prop_name' => $weight . 'g', 'prop_price' => $price, 'num' => 1, 'prop_no' => $p, 'prop_active_price' => $active_price]);
+            $good_props = new GoodsProp();
+            $res = $good_props->isUpdate(false)->save(['good_id' => $good['id'], 'prop_name' => $weight . 'g', 'prop_price' => $price, 'num' => 1, 'prop_no' => $p, 'prop_active_price' => $active_price]);
             if ($res) {
-                model('goods')->save(['have_det' => 1, 'is_live'=>1], ['id' => $good['id']]);
+                model('goods')->save(['have_det' => 1, 'is_live' => 1], ['id' => $good['id']]);
                 $count++;
             } else {
                 $flag = false;

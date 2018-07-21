@@ -71,8 +71,10 @@
                         {:config('order_status')[$item.order_status]}
                         {elseif $item.is_apply_refund == 1/}
                         申请退款
-                        {else/}
+                        {elseif $item.is_apply_refund == 2/}
                         已退款
+                        {elseif $item.is_apply_refund == 3/}
+                        已拒绝退款，{:config('order_status')[$item.order_status]}
                         {/if}
                     </td>
                     <td class="is_send">

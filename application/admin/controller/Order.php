@@ -123,6 +123,46 @@ class Order extends BaseController
             $order_list = model('order')->alias('a')->join('order_refund b', 'a.id=b.order_id', 'left')->field('a.*, b.money refund_money, b.create_time refund_time, b.status refund_status')->where($where)->select();
             $this->assign('list', $order_list);
             $this->assign('filename', date('Y-m-d') . '.xls');
+            $android_num = model('user')->where([
+                'creattime'=>[
+                ['egt', strtotime($start_time)],
+                ['elt', strtotime($end_time . "+1 day")]
+                ],
+                'device'=>'Android'
+            ])->count();
+            $iphone_num = model('user')->where([
+                'creattime'=>[
+                    ['egt', strtotime($start_time)],
+                    ['elt', strtotime($end_time . "+1 day")]
+                ],
+                'device'=>'iPhone'
+            ])->count();
+            $active_num = model('order')->where([
+                'create_time'=>[
+                    ['egt', strtotime($start_time)],
+                    ['elt', strtotime($end_time . "+1 day")]
+                ]
+            ])->group('user_id')->count();
+            $reg_data = [
+                'android'=>$android_num,
+                'iphone'=>$iphone_num,
+                'active_num'=>$active_num
+            ];
+            $this->assign('reg_data', $reg_data);
+            $shop_list = model('shop')->column('id', 'shopname');
+            $amount = [];
+            foreach ($shop_list as $k=>$v){
+                $amount["$k"] = model('order')->where([
+                    'pay_status'=>1,
+                    'is_apply_refund'=>['in', [0, 1, 3]],
+                    'shop_id'=>$v,
+                    'create_time'=>[
+                        ['egt', strtotime($start_time)],
+                        ['elt', strtotime($end_time . "+1 day")]
+                    ]
+                ])->sum('real_cost');
+            }
+            $this->assign('amount', $amount);
             return $this->fetch('excel');
         }
         return $this->fetch();

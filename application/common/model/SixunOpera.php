@@ -277,7 +277,9 @@ class SixunOpera
                     $data['count'] = $item['stock_qty'];
                 }
                 if ($bulk_package == 1) {
-                    $data['bcost'] = $item['sale_price'];
+                    if ($bprice["$item_no"]) {
+                        $data['bcost'] = $bprice["$item_no"];
+                    }
                 } else {
                     $data['bcost'] = 0;
                 }

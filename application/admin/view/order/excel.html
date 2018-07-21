@@ -3,9 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>订单</title>
+    <style>
+        table td{
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-<table border="1" id="aaa" style="margin:0px;padding:0px;" cellspacing="0">
+<table border="1" id="aaa" style="margin:0px;padding:0px; display: none;" cellspacing="0">
     <thead>
         <tr>
             <th>订单编号</th>
@@ -45,6 +50,43 @@
             <td>{$item.refund_money}</td>
         </tr>
         {/foreach}
+        <tr>
+            <td colspan="12">======================================</td>
+        </tr>
+        <tr>
+            <td colspan="6">
+                <table border="1px;" cellspacing="0" cellpadding="0" width="100%;">
+                    <tr>
+                        <th colspan="2">用户注册统计</th>
+                    </tr>
+                    <tr>
+                        <td>安卓用户注册量：</td>
+                        <td>{$reg_data.android}</td>
+                    </tr>
+                    <tr>
+                        <td>IOS用户注册量：</td>
+                        <td>{$reg_data.iphone}</td>
+                    </tr>
+                    <tr>
+                        <td>活跃用户：</td>
+                        <td>{$reg_data.active_num}</td>
+                    </tr>
+                </table>
+            </td>
+            <td colspan="6">
+                <table border="1" cellspacing="0" cellpadding="0" width="100%;">
+                    <tr>
+                        <th colspan="2">店铺销售统计</th>
+                    </tr>
+                    {foreach $amount as $key=>$val}
+                    <tr>
+                        <td>{$key}</td>
+                        <td>{$val}</td>
+                    </tr>
+                    {/foreach}
+                </table>
+            </td>
+        </tr>
     </tbody>
 </table>
 <a id="dlink" href="" style="display: none"></a>
