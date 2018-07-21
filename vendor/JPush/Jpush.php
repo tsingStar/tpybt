@@ -23,7 +23,7 @@ class Jpush{
         tag(20个)Array标签组(并集): tag=>array('昆明','北京','曲靖','上海');
         tag_and(20个)Array标签组(交集): tag_and=>array('广州','女');
         alias(1000)Array别名(并集): alias=>array('93d78b73611d886a74*****88497f501','606d05090896228f66ae10d1*****310');
-        registration_id(1000)注册ID设备标识(并集): registration_id=>array('20effc071de0b45c1a**********2824746e1ff2001bd80308a467d800bed39e');
+        registration_id(1000)注册ID设备标识(并集): registration_id=>array('161a3797c852fe33ea1');
 
         $content 推送的内容。
         $extras  附加字段  array类型
@@ -66,7 +66,7 @@ class Jpush{
         $data['options'] = array(
             "sendno"=>time(),
             "time_to_live"=>$m_time,      //保存离线时间的秒数默认为一天
-            "apns_production"=>false,        //指定 APNS 通知发送环境：0开发环境，1生产环境。
+            "apns_production"=>false,        //指定 APNS 通知发送环境：false开发环境，true生产环境。
         );
         $param = json_encode($data);
         $res = $this->push_curl($param,$header);

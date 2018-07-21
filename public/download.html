@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name='apple-itunes-app' content='app-id=1180523597'>
     <title>易贝通</title>
     <link rel="stylesheet" href="swiper/dist/css/swiper.min.css">
+
     <style>
         #weixin-tip {
             display: none;
@@ -73,7 +75,8 @@
             text-decoration: none;
             color: white;
         }
-        .abstract{
+
+        .abstract {
             font-size: 30px;
             padding-left: 10%;
             padding-right: 10%;
@@ -90,8 +93,10 @@
         </div>
     </dl>
     <div style="float: right; margin-right: 5%; padding-top: 40px;">
-        <a href="http://ceshi.ybt9.com/ybt.apk" class="btn" onclick="openApp(this)">安卓下载</a>
-        <a href="https://itunes.apple.com/cn/app/id1180523597" class="btn" onclick="openApp(this)">苹果下载</a>
+        <a href="javascript:;" class="btn" style="" data-href="http://ceshi.ybt9.com/ybt.apk" id="openAndroid"
+           onclick="openApp(this);">安卓下载</a>
+        <a href="javascript:;" class="btn" style="" data-href="https://itunes.apple.com/cn/app/id1180523597"
+           onclick="openApp(this);" id="openIos">苹果下载</a>
     </div>
 </div>
 <div class="title">
@@ -157,7 +162,6 @@
     })
 </script>
 <script type="text/javascript">
-
     function browserRedirect() {
         var sUserAgent = navigator.userAgent.toLowerCase();
         var bIsIpad = sUserAgent.match(/ipad/i) == "ipad";
@@ -179,33 +183,30 @@
     var winHeight = typeof window.innerHeight != 'undefined' ? window.innerHeight : document.documentElement.clientHeight;
     var tip = document.getElementById('weixin-tip');
     var close = document.getElementById('weixin-tip');
+    close.onclick = function () {
+        tip.style.display = 'none';
+    }
 
     function openApp(o) {
         var is_weixin = (function () {
             return navigator.userAgent.toLowerCase().indexOf('micromessenger') !== -1
         })();
-        alert("12312");
         if (is_weixin) {
-            o.onclick = function (e) {
+            if (is_weixin) {
                 tip.style.height = winHeight + 'px';
                 tip.style.display = 'block';
                 return false;
             }
-            close.onclick = function () {
-                tip.style.display = 'none';
-            }
         } else {
-            var hasApp = true , t = 1000;
-            setTimeout(function () {  //没有安装APP则跳转至应用宝下载，延时时间设置为2秒
-                if(!hasApp) return false;
-            } , 2000);
-            var t1 = Date.now();
-            window.location.href = "ybtprject://com.ybt9.www";
-            setTimeout(function () {    //t的时间就是出发APP启动的时间，若APP启动了，再次返回页面时t2这行代码执行，hasApp即为true。反之若APP没有启动即为false
-                var t2 = Date.now();
-                hasApp = !(!t1 || t2 - t1 < t + 150);
-                return true;
-            } , t);
+            var ifr = document.createElement('iframe');
+            ifr.src = 'ybtprject://com.ybt9.www';
+            ifr.style.display = 'none';
+            document.body.appendChild(ifr);
+            window.setTimeout(function () {
+                document.body.removeChild(ifr);
+            }, 3000)
+            var loc = $(o).data('href');
+            location.href = loc;
         }
     }
 </script>

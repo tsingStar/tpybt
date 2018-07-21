@@ -13,7 +13,8 @@
             <th>店铺名称</th>
             <th>支付方式</th>
             <th>支付时间</th>
-            <th>商品总价</th>
+            <th>线下商品总价</th>
+            <th>线上商品总价</th>
             <th>优惠券抵扣</th>
             <th>实收金额</th>
             <th>创建时间</th>
@@ -27,6 +28,7 @@
             <td>{$item.shop_name}</td>
             <td>{:config('pay_type')[$item.pay_type]}</td>
             <td>{$item.pay_time}</td>
+            <td>{$item.shop_total}</td>
             <td>{$item.shop_cost}</td>
             <td>{$item.coupon_fee}</td>
             <td>{$item.real_cost}</td>

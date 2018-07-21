@@ -238,7 +238,7 @@ class SixunOpera
         //获取分店商品价格
         //获取店铺所选商品分类
         $cateModel = new ShopCate();
-        $cateArr = $cateModel->where(['parent_id'=>['>', 0], 'shop_id'=>$shop_id])->column('orignal_id, id');
+        $cateArr = $cateModel->where(['parent_id' => ['>', 0], 'shop_id' => $shop_id])->column('orignal_id, id');
         //循环处理添加商品
         foreach ($goodsArr as $item) {
             $item_no = trim(iconv('GBK', 'UTF-8', $item['item_no']));
@@ -255,13 +255,17 @@ class SixunOpera
             }
             if (isset($cateArr[$item_clsno])) {
                 $goodsModel = new Goods();
-                $res = $goodsModel->where(['gno'=>$item_no, 'shop_id'=>$shop_id])->find();
+                $res = $goodsModel->where(['gno' => $item_no, 'shop_id' => $shop_id])->find();
+                $data = [];
                 $data['gno'] = $item_no;
                 $data['cate_id'] = $cateArr[$item_clsno];
                 $data['name'] = trim(mb_convert_encoding($item['item_name'], 'UTF-8', 'GBK'));
 //                $data['name'] = trim(iconv('GBK', 'UTF-8', $item['item_name']));
                 $data['sale_price'] = trim(iconv('GBK', 'UTF-8', $item['sale_price']));
-                $data['active_price'] = trim(iconv('GBK', 'UTF-8', $item['sale_price']));
+                //重新格式化活动价格
+                $discount = model('shop')->where('id', $shop_id)->value('discount');
+                $data['active_price'] = round($data['sale_price'] * $discount, 2);
+                //结束
                 $data['goodattr'] = $unit_no;
                 $data['guige'] = $item_size;
                 $data['combine_sta'] = $combine_sta;
@@ -274,10 +278,13 @@ class SixunOpera
                 }
                 if ($bulk_package == 1) {
                     $data['bcost'] = $item['sale_price'];
+                } else {
+                    $data['bcost'] = 0;
                 }
                 //重新格式化商品价格
                 if ($bprice["$item_no"]) {
                     $data['sale_price'] = $bprice["$item_no"];
+                    $data['active_price'] = round($bprice["$item_no"] * $discount, 2);
                 }
                 $data['img'] = join(',', getAllFiles(__UPLOAD__ . '/goodsimg/' . $item_no . '/ontop'));
                 $instro = getAllFiles(__UPLOAD__ . '/goodsimg/' . $item_no . '/d');
@@ -287,15 +294,42 @@ class SixunOpera
                 }
                 $data['instro'] = join('', $instroImg);
                 if ($res) {
-                    if($bulk_package == 1){
-                        $props = model('goods_prop')->where(['good_id'=>$res['id'], 'num'=>['gt', 0]])->select();
-                        if(!$props){
+                    if ($bulk_package == 1) {
+                        $props = model('goods_prop')->where(['good_id' => $res['id'], 'num' => ['gt', 0]])->select();
+                        if (!$props) {
                             $data['is_live'] = 0;
+                        } else {
+                            $data['is_live'] = 1;
+                        }
+                    } else {
+                        if ($combine_sta == 1) {
+                            if ($res['count'] > 0) {
+                                $data['count'] = $res['count'];
+                                $data['is_live'] = 1;
+                            } else {
+                                $data['is_live'] = 0;
+                            }
+                        } else {
+                            $data['is_live'] = 1;
                         }
                     }
+
+                    if ($res['active_id'] != 0) {
+                        unset($data['active_price']);
+                    }
+
                     //更新商品信息
                     $goodsModel->isUpdate(true)->save($data, ['id' => $res['id']]);
                 } else {
+                    if ($bulk_package == 1) {
+                        $data['is_live'] = 0;
+                    } else {
+                        if ($combine_sta == 1) {
+                            $data['is_live'] = 0;
+                        } else {
+                            $data['is_live'] = 1;
+                        }
+                    }
                     $goodsModel->allowField(true)->isUpdate(false)->save($data);
                 }
             }
@@ -330,16 +364,16 @@ class SixunOpera
             return [];
         }
 
-        $vipList = $this->sqlserver->getarr("select * from t_rm_vip_info where mobile='" . $telephone . "' or vip_tel='".$telephone."'");
+        $vipList = $this->sqlserver->getarr("select * from t_rm_vip_info where mobile='" . $telephone . "' or vip_tel='" . $telephone . "'");
         $vipArr = [];
         if (count($vipList) > 0) {
             foreach ($vipList as $item) {
                 $vipArr[] = [
                     'card_id' => $item['card_id'],
-                    'card_no' => $item['card_flowno']?$item['card_flowno']:"",
+                    'card_no' => $item['card_flowno'] ? $item['card_flowno'] : "",
                     'remain_cost' => $this->money_decode($item['residual_amt']),
                     'remain_score' => $item['acc_num'],
-                    'card_name'=>iconv('GBK', 'UTF-8', $item['vip_name'])?iconv('GBK', 'UTF-8', $item['vip_name']):""
+                    'card_name' => iconv('GBK', 'UTF-8', $item['vip_name']) ? iconv('GBK', 'UTF-8', $item['vip_name']) : ""
                 ];
             }
         }
@@ -459,7 +493,7 @@ class SixunOpera
 
     /**
      * 检验会员卡是否正常可用
-     * @param int $user_id  用户id
+     * @param int $user_id 用户id
      * @return bool
      */
     public function checkCardUsable($user_id)
@@ -526,7 +560,7 @@ class SixunOpera
             }
             $in_price = round($good_price['price'] * $sale_qnty, 4);
 
-            $sql_saleflow = "insert into t_rm_saleflow (flow_id, flow_no, branch_no, item_no, source_price, sale_price, sale_qnty, sale_money, sell_way, oper_id, sale_man, counter_no, oper_date, in_price, posid,is_jxc, real_date, flowno_rand, shift_no) values (" . $flow_id . ", '" . $flow_no . "', '" . $branch_no . "', '" . $gno . "', " . $source_price . ", " . $sale_price . ", " . $sale_qnty . ", " . $sale_money . ", '" . $sell_way . "', '" . $oper_id . "', '" . $sale_man . "', '" . $counter_no . "', '" . $oper_date . "', " . $in_price . ", '" . $posid . "', '" . $is_jxc . "', '" . $real_date . "', '" . $flowno_rand . "', '".$shift_no."')";
+            $sql_saleflow = "insert into t_rm_saleflow (flow_id, flow_no, branch_no, item_no, source_price, sale_price, sale_qnty, sale_money, sell_way, oper_id, sale_man, counter_no, oper_date, in_price, posid,is_jxc, real_date, flowno_rand, shift_no) values (" . $flow_id . ", '" . $flow_no . "', '" . $branch_no . "', '" . $gno . "', " . $source_price . ", " . $sale_price . ", " . $sale_qnty . ", " . $sale_money . ", '" . $sell_way . "', '" . $oper_id . "', '" . $sale_man . "', '" . $counter_no . "', '" . $oper_date . "', " . $in_price . ", '" . $posid . "', '" . $is_jxc . "', '" . $real_date . "', '" . $flowno_rand . "', '" . $shift_no . "')";
             $this->sqlserver->query($sql_saleflow); //添加
 
             //修改库存
@@ -559,7 +593,7 @@ class SixunOpera
 //        if($orderInfo['pay_type'] == '3'){
 //            $sql_payflow = "insert into t_rm_payflow (flow_id, flow_no, sale_amount, branch_no, pay_way, sell_way, card_no, coin_no, coin_rate, pay_amount, oper_date, oper_id, counter_no, sale_man, posid, is_jxc, real_date, flowno_rand) values (1, '" . $flow_no . "', " . $order_total . ", '" . $branch_no . "', 'SAV', 'A', '" . $card_id . "', 'RMB', 1.0000, " . $order_total . ", '" . $this->getMillSec() . "', '" . self::OPERA_ID . "', '" . $counter_no . "', '" . $sale_man . "', '" . self::POSID . "', '1', '" . $this->getMillSec() . "', '" . $flowno_rand . "')";
 //        }else{
-            $sql_payflow = "insert into t_rm_payflow (flow_id, flow_no, sale_amount, branch_no, pay_way, sell_way, vip_no, coin_no, coin_rate, pay_amount, oper_date, oper_id, counter_no, sale_man, posid, is_jxc, real_date, flowno_rand) values (1, '" . $flow_no . "', " . $order_total . ", '" . $branch_no . "', '" . config('sixun_pay')[$orderInfo['pay_type']] . "', 'A', '" . $card_id . "', 'RMB', 1.0000, " . $order_total . ", '" . $this->getMillSec() . "', '" . self::OPERA_ID . "', '" . $counter_no . "', '" . $sale_man . "', '" . self::POSID . "', '1', '" . $this->getMillSec() . "', '" . $flowno_rand . "')";
+        $sql_payflow = "insert into t_rm_payflow (flow_id, flow_no, sale_amount, branch_no, pay_way, sell_way, vip_no, coin_no, coin_rate, pay_amount, oper_date, oper_id, counter_no, sale_man, posid, is_jxc, real_date, flowno_rand) values (1, '" . $flow_no . "', " . $order_total . ", '" . $branch_no . "', '" . config('sixun_pay')[$orderInfo['pay_type']] . "', 'A', '" . $card_id . "', 'RMB', 1.0000, " . $order_total . ", '" . $this->getMillSec() . "', '" . self::OPERA_ID . "', '" . $counter_no . "', '" . $sale_man . "', '" . self::POSID . "', '1', '" . $this->getMillSec() . "', '" . $flowno_rand . "')";
 //        }
         $this->sqlserver->query($sql_payflow);
 
@@ -619,8 +653,8 @@ class SixunOpera
      */
     public function asyncVip($user)
     {
-        $birthday = (date('Y')-$user['age']).'-'.$user['birthday'].' 00:00:00.000';
-        $sql = 'UPDATE t_rm_vip_info SET vip_name="' . iconv('UTF-8', 'GBK', $user['username']) . '", birthday="'.$birthday.'" WHERE card_id="' . $user['card_id'] . '"';
+        $birthday = (date('Y') - $user['age']) . '-' . $user['birthday'] . ' 00:00:00.000';
+        $sql = "UPDATE t_rm_vip_info SET vip_name='" . iconv('UTF-8', 'GBK', $user['username']) . "', birthday='" . $birthday . "' WHERE card_id='" . $user['card_id'] . "'";
         $this->sqlserver->query($sql);
     }
 
@@ -644,7 +678,7 @@ class SixunOpera
      */
     public function getChildGood($combineNo)
     {
-        return $this->sqlserver->select_one("select * from t_bd_item_combsplit where comb_item_no='".$combineNo."'");
+        return $this->sqlserver->select_one("select * from t_bd_item_combsplit where comb_item_no='" . $combineNo . "'");
     }
 
 }

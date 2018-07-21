@@ -77,6 +77,7 @@ class Order extends BaseUser
             }
         }
         //校验收货地址和配送时间合法性结束
+        $shop_total = 0; //商品原价
         $shop_cost = 0;  //订单总金额
         foreach ($good_list as $value) {
             $good_id = $value['good_id'];
@@ -97,6 +98,7 @@ class Order extends BaseUser
             }
 
             $shop_cost += $value['total_price'];
+            $shop_total += $value['sale_price']*$value['num'];
         }
         $shop_cost = sprintf("%.2f", $shop_cost);
         if($dispatch_type == 0){
@@ -137,6 +139,7 @@ class Order extends BaseUser
             'good_list' => $good_list,
             'user_id' => USER_ID,
             'shop_name' => $shop_name,
+            'shop_total'=>$shop_total,
             'shop_cost' => $shop_cost,
             'real_cost' => $shop_cost - $coupon_fee,
             'coupon_fee' => $coupon_fee

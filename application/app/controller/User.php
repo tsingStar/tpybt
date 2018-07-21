@@ -14,6 +14,7 @@ use app\common\model\MoneyLogMonth;
 use app\common\model\Pay;
 use app\common\model\RongYun;
 use app\common\model\SixunOpera;
+use think\Log;
 
 class User extends BaseUser
 {
@@ -55,7 +56,7 @@ class User extends BaseUser
      */
     public function editUser()
     {
-        $userModel = new \app\common\model\User();
+
         $data = input('post.');
         $file = request()->file('headImg');
         if ($file) {
@@ -65,18 +66,18 @@ class User extends BaseUser
             $data['logo'] = $headImg;
         }
         unset($data['userid']);
-        $u = $userModel->where($data)->find();
+        $u = model('user')->where($data)->find();
         if ($u['id'] > 0) {
             exit_json(1, '更新成功');
         }
-        unset($data['id']);
-        $bol = $userModel->allowField(true)->save($data, ['id' => USER_ID]);
+//        unset($data['id']);
+        $bol = model('user')->allowField(true)->save($data, ['id' => USER_ID]);
         if ($bol) {
             $rongYun = new RongYun();
             $user = model('user')->where(['id' => USER_ID])->find();
             $rongYun->refresh('vip' . USER_ID, $user['username'], __URL__ . $user['logo']);
             $sixun = new SixunOpera();
-            $sixun->asyncVip($user);
+            $s = $sixun->asyncVip($user);
             exit_json(1, '更新成功');
         } else {
             exit_json(-1, '保存失败');
@@ -93,7 +94,7 @@ class User extends BaseUser
             exit_json(1, '请求成功', ['message' => '签到成功']);
         } else {
             $msg = $this->userModel->getError();
-            exit_json(-1, '请求成功', ['message' => '今日已签到']);
+            exit_json(-1, $msg);
         }
     }
 

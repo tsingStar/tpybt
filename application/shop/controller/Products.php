@@ -343,6 +343,8 @@ class Products extends ShopBase
                     }
                 }
                 unset($data['prop']);
+            }else{
+                db('goods_prop')->where('good_id', $data['id'])->delete();
             }
             $res = $productModel->allowField(true)->save($data, ['id' => $data['id']]);
 
@@ -479,7 +481,13 @@ class Products extends ShopBase
         if ($num < 0) {
             exit_json(-1, '库存数量只能为数字');
         } else {
-            $res = model('goods')->where('id', $good_id)->find()->save(['count' => $num]);
+            $data['count'] = $num;
+            if($num == 0){
+                $data['is_live'] = 0;
+            }else{
+                $data['is_live'] = 1;
+            }
+            $res = model('goods')->where('id', $good_id)->find()->save($data);
             if ($res) {
                 exit_json();
             } else {
@@ -513,7 +521,7 @@ class Products extends ShopBase
         $count = 0;
         $fail = 0;
         foreach ($data as $key => $val) {
-            $res = model('goods')->save(['count' => $val], ['gno' => $key, 'shop_id' => SHOP_ID]);
+            $res = model('goods')->save(['count' => $val, 'is_live'=>1], ['gno' => $key, 'shop_id' => SHOP_ID]);
             if ($res) {
                 $count += $val;
             } else {
@@ -722,7 +730,7 @@ class Products extends ShopBase
             $active_price = $price * $discount;
             $res = model('goods_prop')->save(['good_id' => $good['id'], 'prop_name' => $weight . 'g', 'prop_price' => $price, 'num' => 1, 'prop_no' => $p, 'prop_active_price' => $active_price]);
             if ($res) {
-                model('goods')->save(['have_det' => 1], ['id' => $good['id']]);
+                model('goods')->save(['have_det' => 1, 'is_live'=>1], ['id' => $good['id']]);
                 $count++;
             } else {
                 $flag = false;

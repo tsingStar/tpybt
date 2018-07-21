@@ -33,7 +33,7 @@ class RongYun
     public function refresh($uid, $username, $portraitUrl)
     {
         $result = $this->RongCloud->user()->refresh($uid, $username, $portraitUrl);
-        return true;
+        return $result;
 
     }
 

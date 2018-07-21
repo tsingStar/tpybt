@@ -133,6 +133,9 @@ class Order extends ShopBase
     public function getNewOrder()
     {
 //        $order_id = input('order_id');
+        if(!SHOP_ID){
+            exit_json(-1);
+        }
         $where = [];
         $where['order_status'] = 1;
         $where['pay_status'] = 1;

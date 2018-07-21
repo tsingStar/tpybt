@@ -31,7 +31,7 @@ class Pub extends Controller
 
     public function test()
     {
-        $res = pushMess('测试推送', ['id' => '123123', 'url' => 'dfsgfdasfsfgsfd', 'scene' => 'sec_active']);
+        $res = pushMess('张夫人你好！', ['id' => '123123', 'url' => 'dfsgfdasfsfgsfd', 'scene' => 'sec_active'], ['registration_id'=>array('161a3797c852fe33ea1')]);
         echo $res;
         exit();
     }
@@ -185,6 +185,9 @@ class Pub extends Controller
         $shop = model('shop')->where('fendian', $shopid)->find();
         $shopid = $shop['id'];
         $good = model('goods')->where(['gno'=>$gno, 'shop_id'=>$shopid])->find();
+        if(!$good){
+            exit_json(1);
+        }
         if($good['bulk_package']==1){
             if($total>0){
                 $prop = model('goods_prop')->where(['good_id'=>$good['id'], 'prop_price'=>$total, 'num'=>['gt', 0]])->find();
@@ -209,7 +212,7 @@ class Pub extends Controller
             $count = $count*$item['item_qty'];
         }
 //        $sql = "update ".Mysite::$app->config['tablepre'].'goods set count=count-'.$count.' where gno="'.$gno.'" and shopid='.$shopid;
-        $good->setDec('count', $count);
+        model('goods')->where(['gno'=>$gno, 'shop_id'=>$shopid])->setDec('count', $count);
 //        $this->mysql->query($sql);
 
         exit(json_encode(array(
