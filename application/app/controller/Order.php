@@ -488,6 +488,7 @@ class Order extends BaseUser
     {
         $pay_data = ['payStatus' => 0, 'aliOrderString' => '', 'payMessage' => '支付参数异常', 'weixinOrderString' => new \stdClass()];
         $trade_password = input('trade_password');
+        $trade_password = strtolower($trade_password);
         $order = model('order');
         $orderInfo = $order->where('order_no', $order_no)->find();
         $user = model('user')->where(['id' => USER_ID, 'trade_password' => md5($trade_password)])->find();

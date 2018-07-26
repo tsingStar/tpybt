@@ -243,6 +243,7 @@ class User extends BaseUser
     public function setTradePassword()
     {
         $trade_password = trim(input('post.trade_password'));
+        $trade_password = strtolower($trade_password);
         if (!$trade_password) {
             exit_json(-1, '交易密码不能为空');
         } else {
@@ -280,6 +281,8 @@ class User extends BaseUser
 //        if(strlen($new_password) != 6 || !preg_match("/^\d{6}$/", $new_password)){
 //            exit_json(-1, '请输入有效六位数字');
 //        }
+        $new_password = strtolower($new_password);
+        $old_password = strtolower($old_password);
         $user = model('user')->where(['id' => USER_ID, 'trade_password' => md5($old_password)])->find();
         if (!$user['id']) {
             exit_json(-1, '密码错误');
@@ -479,6 +482,18 @@ class User extends BaseUser
             'complaints_phone' => $data['complaints_phone'],
             'shop_phone' => $shop_phone
         ]);
+    }
+
+    /**
+     * 获取融云token
+     */
+    public function getRongYunToken()
+    {
+        $user = model('user')->where('id', USER_ID)->find();
+        $rongyun = new RongYun();
+        $token = $rongyun->getToken('vip'.$user['id'], $user['username']?:$user['phone'], $user['logo']?:config('default_img'));
+        model('user')->save(['rongyunToken'=>$token], ['id'=>USER_ID]);
+        exit_json(1, '请求成功', ['token'=>$token]);
     }
 
 }
