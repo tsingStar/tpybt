@@ -31,6 +31,9 @@ class Order extends BaseUser
         }
         $address_id = input('address_id');
         $dispatch_time = input('dispatch_time');
+        if(strtotime($dispatch_time) === false){
+            $dispatch_time = date('H:i');
+        }
         $remarks = input('remarks');
         $coupon_id = input('coupon_id') ? input('coupon_id') : 0;
         //配送方式 0 店铺配送 1 到店自取
