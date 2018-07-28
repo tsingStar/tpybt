@@ -31,9 +31,41 @@ class Pub extends Controller
 
     public function test()
     {
-        $res = pushMess('张夫人你好！', ['id' => '123123', 'url' => 'dfsgfdasfsfgsfd', 'scene' => 'sec_active'], ['registration_id'=>array('161a3797c852fe33ea1')]);
-        echo $res;
-        exit();
+
+        //推送订单支付成功
+        $shop_id = input('shop_id');
+        $employee = new \app\common\model\Employee();
+        $tokens = $employee->where('shop_id', $shop_id)->column('jiguangToken');
+        $shopModel = new \app\common\model\Shop();
+        $jiguangToken = $shopModel->where('id', $shop_id)->value('jiguangToken');
+        $tokens[] = $jiguangToken;
+        print_r($tokens);
+        $res = pushMess('你有新的订单待处理', ['scence'=>'order'], ['registration_id'=>$tokens], 2);
+        exit($res);
+    }
+
+    /**
+     * 获取上线状态--针对IOS上架处理
+     */
+    public function getOnline()
+    {
+        exit_json(1, '请求成功', ['userid' => "3262", 'code' => '0']);
+    }
+
+    /**
+     * 更改默认USER_ID
+     */
+    public function setDefaultUserId()
+    {
+        $user_id = input('old_user_id');
+        $user_id1 = input('new_user_id');
+        model('shopcart')->where('user_id', $user_id1)->delete();
+        $res = model('shopcart')->save(['user_id' => $user_id1], ['user_id' => $user_id]);
+//        if ($res) {
+            exit_json(1, '操作成功');
+//        } else {
+//            exit_json(-1, '操作失败');
+//        }
     }
 
     public function getVersion()
@@ -66,6 +98,7 @@ class Pub extends Controller
 
         $telephone = input('post.phone');
         $password = input('post.password');
+
         $jiguangToken = input('post.jiguangToken');
         $userModel = new User();
         $user = $userModel->where('phone', 'eq', $telephone)->find();
@@ -78,10 +111,10 @@ class Pub extends Controller
             }
             $env = new GetEnvironment();
             $env = $env->environment();
-            $data = ['jiguangToken' => $jiguangToken, 'device'=>$env];
-            if(!$user['rongyunToken']){
+            $data = ['jiguangToken' => $jiguangToken, 'device' => $env];
+            if (!$user['rongyunToken']) {
                 $rongYun = new RongYun();
-                $token = $rongYun->getToken('vip' . $user['id'], $user['username']?:$user['phone'], config('default_img'));
+                $token = $rongYun->getToken('vip' . $user['id'], $user['username'] ?$user['username']: $user['phone'], config('default_img'));
                 $data['rongyunToken'] = $token;
             }
             $userModel->isUpdate(true)->save($data, ['id' => $user['id']]);
@@ -106,6 +139,10 @@ class Pub extends Controller
             exit_json(-1, $smsModel->getError());
         }
         $data['password'] = $data['password'];
+        $u = model('user')->where('phone', $data['phone'])->find();
+        if($u){
+            exit_json(-1, '当前手机号已注册');
+        }
         $userModel = new User();
         $userModel->allowField(true)->isUpdate(false)->save($data);
         $userid = $userModel->getLastInsID();
@@ -170,53 +207,54 @@ class Pub extends Controller
     /**
      * 更改商品
      */
-    function changeGoodsStatus(){
+    function changeGoodsStatus()
+    {
         //下架商品
         $shopid = $_GET['shopid'];
         $gno = $_GET['gno'];
         $price = $_GET['price'];
         $price = sprintf('%.2f', $price);
         $total = sprintf('%.2f', $_GET['total']);
-        if(!$shopid || !$gno || !$price || !$total){
+        if (!$shopid || !$gno || !$price || !$total) {
             exit(json_encode(array(
-                'code'=>-1, 'msg'=>'参数不全'
+                'code' => -1, 'msg' => '参数不全'
             )));
         }
         $shop = model('shop')->where('fendian', $shopid)->find();
         $shopid = $shop['id'];
-        $good = model('goods')->where(['gno'=>$gno, 'shop_id'=>$shopid])->find();
-        if(!$good){
+        $good = model('goods')->where(['gno' => $gno, 'shop_id' => $shopid])->find();
+        if (!$good) {
             exit_json(1);
         }
-        if($good['bulk_package']==1){
-            if($total>0){
-                $prop = model('goods_prop')->where(['good_id'=>$good['id'], 'prop_price'=>$total, 'num'=>['gt', 0]])->find();
-                if($prop['id']>0){
+        if ($good['bulk_package'] == 1) {
+            if ($total > 0) {
+                $prop = model('goods_prop')->where(['good_id' => $good['id'], 'prop_price' => $total, 'num' => ['gt', 0]])->find();
+                if ($prop['id'] > 0) {
                     $prop->setDec('num');
                 }
-            }else{
+            } else {
                 $total1 = abs($total);
-                $prop_active_price = round($total1*$shop['discount'], 2);
-                $weight = round($total1/$price, 4)*1000;
-                model('goods_prop')->save(['good_id'=>$good['id'], 'prop_name'=>$weight, 'prop_price'=>$total1, 'num'=>1, 'prop_active_price'=>$prop_active_price]);
+                $prop_active_price = round($total1 * $shop['discount'], 2);
+                $weight = round($total1 / $price, 4) * 1000;
+                model('goods_prop')->save(['good_id' => $good['id'], 'prop_name' => $weight, 'prop_price' => $total1, 'num' => 1, 'prop_active_price' => $prop_active_price]);
             }
-            $count = round($total/$good['bcost'], 4);
+            $count = round($total / $good['bcost'], 4);
 //            $this->mysql->query($sql);
-        }else{
-            $count = intval($total/$price);
+        } else {
+            $count = intval($total / $price);
         }
         //捆绑商品更改子商品库存量
-        if($good['combine_sta'] == 1){
+        if ($good['combine_sta'] == 1) {
             $item = $this->getChildGood($gno);
 //            $gno = trim(iconv('GBK', 'UTF-8', $item['item_no']));
-            $count = $count*$item['item_qty'];
+            $count = $count * $item['item_qty'];
         }
 //        $sql = "update ".Mysite::$app->config['tablepre'].'goods set count=count-'.$count.' where gno="'.$gno.'" and shopid='.$shopid;
-        model('goods')->where(['gno'=>$gno, 'shop_id'=>$shopid])->setDec('count', $count);
+        model('goods')->where(['gno' => $gno, 'shop_id' => $shopid])->setDec('count', $count);
 //        $this->mysql->query($sql);
 
         exit(json_encode(array(
-            'code'=>1
+            'code' => 1
         )));
     }
 
@@ -225,7 +263,8 @@ class Pub extends Controller
      * @param $combineNo
      * @return array
      */
-    function getChildGood($combineNo){
+    function getChildGood($combineNo)
+    {
         $sixun = new SixunOpera();
         $good = $sixun->getChildGood($combineNo);
         return $good;
@@ -233,9 +272,10 @@ class Pub extends Controller
 
     public function asyncUser()
     {
-        $data = file_get_contents(__PUBLIC__.'/a.json');
+        $data = file_get_contents(__PUBLIC__ . '/a.json');
         $d = json_decode($data, true);
-        echo count($d['RECORDS']);exit;
+        echo count($d['RECORDS']);
+        exit;
         model('user')->saveAll($d['RECORDS']);
 
     }

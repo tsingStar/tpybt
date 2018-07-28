@@ -90,9 +90,6 @@ function addAdminOperaLog()
  */
 function exit_json($code = 1, $msg = "操作成功", $data = null)
 {
-    if (is_null($data)) {
-        $data = new stdClass();
-    }
     header('Content-Type:application/json');
     exit(json_encode(['code' => $code, 'msg' => $msg, 'data' => $data]));
 }
@@ -160,10 +157,14 @@ function decodeId($enid)
  * @param int $m_time 离线保留时间
  * @return string
  */
-function pushMess($content = "显示内容", $extras = array(), $receive = "all", $title = "", $is_notify = 1, $m_time = 86400)
+function pushMess($content = "显示内容", $extras = array(), $receive = "all", $is_shop=1,  $title = "", $is_notify = 1, $m_time = 86400)
 {
     vendor('JPush.Jpush');
-    $pushObj = new \Jpush(config('jiguangKey'), config('jiguangSecret'));
+    if($is_shop == 1){
+        $pushObj = new \Jpush(config('jiguangKey'), config('jiguangSecret'));
+    }else{
+        $pushObj = new \Jpush(config('jiguangKey_shop'), config('jiguangSecret_shop'));
+    }
     //调用推送,并处理
     $result = $pushObj->push($receive, $title, $content, $extras, $m_time, $is_notify);
     if ($result) {
@@ -293,7 +294,7 @@ function getOrderNo()
 {
     $millisecond = get_millisecond();
     $millisecond = str_pad($millisecond, 3, '0', STR_PAD_RIGHT);
-    return date("YmdHis") . $millisecond . rand(1000, 9999);
+    return date("YmdHis") . $millisecond . rand(100, 999);
 }
 
 /**

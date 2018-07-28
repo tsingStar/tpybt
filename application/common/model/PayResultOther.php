@@ -34,6 +34,11 @@ class PayResultOther
             $user->setInc('score', $score);
             $sixun = new SixunOpera();
             $card = $sixun->getCardInfo($user['card_id']);
+            //判断是否有会员卡消费记录
+            $res = $sixun->getConsume($user['card_id']);
+            if(!$res){
+                $sixun->addConsume($user['card_id']);
+            }
             $score += $card['acc_num'];
             $sixun->set_core($score, $user['card_id']);
         }

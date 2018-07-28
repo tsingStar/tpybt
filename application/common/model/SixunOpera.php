@@ -10,6 +10,8 @@
 namespace app\common\model;
 
 
+use think\Log;
+
 class SixunOpera
 {
     private $sqlserver;
@@ -219,6 +221,8 @@ class SixunOpera
         foreach ($goodsArr as $item_no) {
             $goodsItemNos[] = trim($item_no['item_no']);
         }
+
+        model('goods')->save(['is_live'=>0, 'count'=>0], ['gno'=>['not in', $goodsItemNos], 'shop_id'=>$shop_id, 'combine_sta'=>['neq', 1]]);
 
         //获取所有组合商品编码
         $itemListTemp = $this->sqlserver->getarr("select comb_item_no from [dbo].[t_bd_item_combsplit] where [item_no] in ('" . join("','", $goodsItemNos) . "') ");
@@ -520,7 +524,7 @@ class SixunOpera
      * @throws \think\db\exception\ModelNotFoundException
      * @throws \think\exception\DbException
      */
-    public function writeOrder($orderInfo)
+    public function writeOrder($orderInfo, $type=1)
     {
         $branch_no = model('shop')->where('id', $orderInfo['shop_id'])->value('fendian');
         if (!$branch_no) {
@@ -533,7 +537,13 @@ class SixunOpera
         $card_id = model('User')->where('id', $orderInfo['user_id'])->value('card_id');
         $sale_man = '9999';
         $counter_no = "0001";
+        if($type == 1){
+            $sell_way = "A";
+        }else{
+            $sell_way = "B";
+        }
         $date = date('Y-m-d');
+
         foreach ($good_list as $key => $good) {
             //写入销售流水
             $flow_id = $key + 1;
@@ -546,7 +556,6 @@ class SixunOpera
             $sale_price = $good_price['sale_price'];
             $sale_qnty = $good['num'];
             $sale_money = sprintf("%.2f", $sale_qnty * $sale_price);
-            $sell_way = "A";
             $oper_id = self::OPERA_ID;
             $oper_date = $this->getMillSec();
             $posid = self::POSID;
@@ -590,12 +599,13 @@ class SixunOpera
             $order_total += $sale_money;
 
         }
+        $order_total = sprintf("%.2f", $order_total);
 
         //增加支付记录
 //        if($orderInfo['pay_type'] == '3'){
 //            $sql_payflow = "insert into t_rm_payflow (flow_id, flow_no, sale_amount, branch_no, pay_way, sell_way, card_no, coin_no, coin_rate, pay_amount, oper_date, oper_id, counter_no, sale_man, posid, is_jxc, real_date, flowno_rand) values (1, '" . $flow_no . "', " . $order_total . ", '" . $branch_no . "', 'SAV', 'A', '" . $card_id . "', 'RMB', 1.0000, " . $order_total . ", '" . $this->getMillSec() . "', '" . self::OPERA_ID . "', '" . $counter_no . "', '" . $sale_man . "', '" . self::POSID . "', '1', '" . $this->getMillSec() . "', '" . $flowno_rand . "')";
 //        }else{
-        $sql_payflow = "insert into t_rm_payflow (flow_id, flow_no, sale_amount, branch_no, pay_way, sell_way, vip_no, coin_no, coin_rate, pay_amount, oper_date, oper_id, counter_no, sale_man, posid, is_jxc, real_date, flowno_rand) values (1, '" . $flow_no . "', " . $order_total . ", '" . $branch_no . "', '" . config('sixun_pay')[$orderInfo['pay_type']] . "', 'A', '" . $card_id . "', 'RMB', 1.0000, " . $order_total . ", '" . $this->getMillSec() . "', '" . self::OPERA_ID . "', '" . $counter_no . "', '" . $sale_man . "', '" . self::POSID . "', '1', '" . $this->getMillSec() . "', '" . $flowno_rand . "')";
+        $sql_payflow = "insert into t_rm_payflow (flow_id, flow_no, sale_amount, branch_no, pay_way, sell_way, vip_no, coin_no, coin_rate, pay_amount, oper_date, oper_id, counter_no, sale_man, posid, is_jxc, real_date, flowno_rand) values (1, '" . $flow_no . "', " . $order_total . ", '" . $branch_no . "', '" . config('sixun_pay')[$orderInfo['pay_type']] . "', '$sell_way', '" . $card_id . "', 'RMB', 1.0000, " . $order_total . ", '" . $this->getMillSec() . "', '" . self::OPERA_ID . "', '" . $counter_no . "', '" . $sale_man . "', '" . self::POSID . "', '1', '" . $this->getMillSec() . "', '" . $flowno_rand . "')";
 //        }
         $this->sqlserver->query($sql_payflow);
 
@@ -658,6 +668,7 @@ class SixunOpera
         $birthday = (date('Y') - $user['age']) . '-' . $user['birthday'] . ' 00:00:00.000';
         $sql = "UPDATE t_rm_vip_info SET vip_name='" . iconv('UTF-8', 'GBK', $user['username']) . "', birthday='" . $birthday . "' WHERE card_id='" . $user['card_id'] . "'";
         $this->sqlserver->query($sql);
+        return true;
     }
 
     /**
@@ -669,10 +680,32 @@ class SixunOpera
         return $this->sqlserver->getarr($sql);
     }
 
+    /**
+     * 添加会员卡消费信息
+     */
+    public function addConsume($card_id)
+    {
+        $sql = "insert into t_rm_vip_consume (card_id, branch_no) values ('$card_id', '002')";
+        $this->sqlserver->query($sql);
+    }
+
     public function setConsume($card_id, $min_num)
     {
         $sql = "update t_rm_vip_consume set vip_minus_total =vip_minus_total +$min_num where card_id='$card_id'";
         $this->sqlserver->query($sql);
+    }
+
+    /**
+     * 判断会员是否有消费
+     */
+    public function getConsume($card_id)
+    {
+        $card = $this->sqlserver->getarr("select * from t_rm_vip_consume where card_id='$card_id'");
+        if($card){
+            return true;
+        }else{
+            return false;
+        }
     }
 
     /**

@@ -15,7 +15,6 @@ use app\common\model\Shop;
 use app\common\model\ShopCate;
 use app\common\model\Goods;
 use app\common\model\SixunOpera;
-use think\Log;
 
 class Products extends ShopBase
 {
@@ -351,19 +350,24 @@ class Products extends ShopBase
 
             if ($res) {
                 //修改规格
+                $prop_ids = [];
                 foreach ($p as $item) {
                     if (!$item['prop_id']) {
                         $prop_data = $item;
                         unset($prop_data['prop_id']);
                         $prop_data['good_id'] = $data['id'];
-                        db('goods_prop')->insert($prop_data);
+                        model('goods_prop')->save($prop_data);
+                        $prop_id = model('goods_prop')->getLastInsID();
                     } else {
                         $prop_data = $item;
+                        $prop_id = $prop_data['prop_id'];
                         unset($prop_data['prop_id']);
                         db('goods_prop')->where('id', $item['prop_id'])->update($prop_data);
                     }
-
+                    $prop_ids[] = $prop_id;
                 }
+                model('goods_prop')->whereNotIn('id', $prop_ids)->setField('num', 0);
+                model('shopcart')->where('good_id', $data['id'])->whereNotIn('prop_id', $prop_ids)->where('prop_id', 'neq', 0)->delete();
                 exit_json();
             } else {
                 exit_json(-1, "保存失败");
@@ -374,7 +378,7 @@ class Products extends ShopBase
         $list = $cateModel->field('id, name, parent_id')->select();
         $cateTree = getTree($list, 0, 'parent_id');
         $pid = $cateModel->where('id', $product['cate_id'])->value('parent_id');
-        $prop = db('goods_prop')->where('good_id', $product['id'])->select();
+        $prop = db('goods_prop')->where(['good_id'=>$product['id'], 'num'=>['gt', 0]])->select();
         $active_list = db('active')->where('is_open', 1)->column('active_name', 'id');
         $this->assign('active_list', $active_list);
         $this->assign('prop', $prop);

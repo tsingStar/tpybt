@@ -25,7 +25,13 @@ class RongYun
     public function getToken($uid, $username, $portraitUrl)
     {
         $result = $this->RongCloud->user()->getToken($uid, $username, $portraitUrl);
-        return $result['token'];
+        //print_r($result);
+        if(isset($result['token'])){
+            return $result['token'];
+        }else{
+            return '1';
+        }
+//        return "";
 
     }
 

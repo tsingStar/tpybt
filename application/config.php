@@ -254,7 +254,7 @@ return [
     'sitename' => '北京易贝通商贸',
     //mssql数据库链接参数
     'mssql' => [
-//        'ms_dbhost' => '39.104.115.195',
+//       'ms_dbhost' => '39.104.115.195',
 //        'ms_dbuser' => 'ybt6',
 //        'ms_dbpw' => 'zs2011328ZJ',
         'ms_dbhost' => '39.107.99.161',
@@ -265,11 +265,13 @@ return [
     ],
     'shopkey' => 'shop_id',
     'adminkey' => 'admin_id',
-    'default_img' => __URL__ . '/default_img.png',
+    'default_img' => __URL__ . '/default_img.jpg',
     'rongyunKey' => '0vnjpoad06e4z',
     'rongyunSecret' => 'RKkCz8SIMHi',
     'jiguangKey' => '448b00ceb15d13b5dd78b7c5',
     'jiguangSecret' => '28a4a2d61f5fe1df9d47e0ab',
+    'jiguangKey_shop' => '738ad6132fc37926bfab4f94',
+    'jiguangSecret_shop' => '9c0896dda4f24c37567fcbe4',
     'geo_web_key' => 'd9c1e1a72c5ddae22a85caaec6124274',
     'geo_ios_key' => 'eeb963b0efd4e295f6bbbdfe8116ed8b',
     //支付宝配置参数
@@ -315,6 +317,6 @@ return [
         'sec_active'=>'限时抢购',
     ],
     'order_remain'=>15, //订单有效时间 min
-    'version'=>'1.4.1',
+    'version'=>'1.4.2',
     'download_url'=>__URL__.'/ybt.apk',
 ];

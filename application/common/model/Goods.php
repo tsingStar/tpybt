@@ -109,7 +109,7 @@ class Goods extends Model
      */
     public function getGoodsList($shop_id, $extra = [], $page = 0, $page_num = 0, $is_m = 0)
     {
-        $where = [];
+        $where = ['count'=>['gt', 0]];
         $where['shop_id'] = ['eq', $shop_id];
         $where = array_merge($where, $extra);
         if ($page == 0) {
@@ -133,7 +133,7 @@ class Goods extends Model
      */
     public function getGoodsProp($good_id)
     {
-        $prop = db('goods_prop')->field('id prop_id, prop_name, prop_active_price, prop_price, num')->where('good_id', $good_id)->select();
+        $prop = db('goods_prop')->field('id prop_id, prop_name, prop_active_price, prop_price, num')->where(['good_id'=>$good_id, 'num'=>['gt', 0]])->select();
         return $prop;
     }
 
