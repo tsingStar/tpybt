@@ -89,9 +89,6 @@ class User extends Model
                 $this->save(['card_no' => $cardNo, 'card_id' => $cardId], ['id' => $res['id']]);
                 //写入会员卡信息
                 $sixunModel->addVip($res, $cardNo, $cardId);
-                //写入会员卡消费信息
-                $sixunModel->addConsume($cardId);
-
                 $cardFlag = 0;
                 $res['card_no'] = $cardNo;
                 $res['card_id'] = $cardId;
