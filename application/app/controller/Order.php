@@ -197,6 +197,9 @@ class Order extends BaseUser
         $good_list = [];
         $shop_cost = 0;
         if ($type == 1) {
+            if(USER_ID == '3370'){
+                exit_json(-1, '请先到我的->设置中登录');
+            }
             // 立即购买
             $good_id = input('good_id');
             $prop_id = input('prop_id') ? input('prop_id') : 0;
@@ -442,6 +445,16 @@ class Order extends BaseUser
                 'refund_money' => $order['real_cost'],
                 'remarks' => $remarks
             ]);
+
+            //推送申请退款成功
+            $shop_id = $order['shop_id'];
+            $employee = new \app\common\model\Employee();
+            $tokens = $employee->where('shop_id', $shop_id)->column('jiguangToken');
+            $shopModel = new \app\common\model\Shop();
+            $jiguangToken = $shopModel->where('id', $shop_id)->value('jiguangToken');
+            $tokens[] = $jiguangToken;
+            pushMess('你有申请退款订单待处理', ['scene'=>'2'], ['registration_id'=>$tokens], 2);
+
             exit_json(1, '申请已提交，等待商家审核');
         } else {
             exit_json(-1, '订单不存在');

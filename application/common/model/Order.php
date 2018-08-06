@@ -148,6 +148,15 @@ class Order extends Model
             $det = new OrderDet();
             $det->decGoods($o['order_no']);
 
+            //推送订单支付成功
+            $shop_id = $order['shop_id'];
+            $employee = new Employee();
+            $tokens = $employee->where('shop_id', $shop_id)->column('jiguangToken');
+            $shopModel = new Shop();
+            $jiguangToken = $shopModel->where('id', $shop_id)->value('jiguangToken');
+            $tokens[] = $jiguangToken;
+            pushMess('你有新的订单待处理', ['scene'=>'1'], ['registration_id'=>$tokens], 2);
+
             return true;
         } else {
             return false;

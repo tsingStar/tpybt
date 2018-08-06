@@ -32,15 +32,19 @@ class PayResultOther
             $userScore->save(['score'=>$score, 'type'=>1, 'user_id'=>$order['user_id'], 'desc'=>'消费赠送积分']);
             $user = model('user')->where('id', $order['user_id'])->find();
             $user->setInc('score', $score);
+            $branch_no = model('shop')->where('id', $order['shop_id'])->value('fendian');
+
+
+
             $sixun = new SixunOpera();
-            $card = $sixun->getCardInfo($user['card_id']);
             //判断是否有会员卡消费记录
-            $res = $sixun->getConsume($user['card_id']);
+            $res = $sixun->getConsume($user['card_id'], $branch_no);
             if(!$res){
-                $sixun->addConsume($user['card_id']);
+                $sixun->addConsume($user['card_id'], $branch_no);
+                $res = $sixun->getConsume($user['card_id'], $branch_no);
             }
-            $score += $card['acc_num'];
-            $sixun->set_core($score, $user['card_id']);
+            $score += $res['vip_acc_amount'];
+            $sixun->set_core($score, $user['card_id'], $branch_no);
         }
         self::otherWelfare($order);
         return true;

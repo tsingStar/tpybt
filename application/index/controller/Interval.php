@@ -77,14 +77,9 @@ class Interval extends Controller
 
     public function downGoodsProp()
     {
-        ignore_user_abort(true);
-        set_time_limit(0);
-        $t = 1;
-        do{
             model('goods_prop')->where('create_time', 'lt', strtotime(date('Y-m-d')))->delete();
+            model('goods')->where('bulk_package', 1)->setField('is_live', 0);
             model('shopcart')->where('prop_id', 'gt', 0)->delete();
-            $t++;
-            sleep(86400);
-        } while(true);
+            exit('商品下架成功');
     }
 }

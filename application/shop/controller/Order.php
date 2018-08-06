@@ -10,7 +10,10 @@
 namespace app\shop\controller;
 
 
+use app\common\model\AliPay;
+use app\common\model\MoneyLog;
 use app\common\model\SixunOpera;
+use app\common\model\WeiXinPay;
 use think\Log;
 
 class Order extends ShopBase
@@ -29,7 +32,7 @@ class Order extends ShopBase
      */
     public function index()
     {
-        if(request()->isPost()){
+        if (request()->isPost()) {
             $order = model('order');
             $where = [];
             $where['a.shop_id'] = SHOP_ID;
@@ -133,7 +136,7 @@ class Order extends ShopBase
     public function getNewOrder()
     {
 //        $order_id = input('order_id');
-        if(!SHOP_ID){
+        if (!SHOP_ID) {
             exit_json(-1);
         }
         $where = [];
@@ -142,7 +145,7 @@ class Order extends ShopBase
         $where['is_send'] = 0;
         $where['shop_id'] = SHOP_ID;
         $count = model('order')->where($where)->order('id desc')->count();
-        if ($count>0) {
+        if ($count > 0) {
             exit_json();
         } else {
             exit_json(-1);
@@ -156,13 +159,13 @@ class Order extends ShopBase
      */
     public function refundList()
     {
-        try{
+        try {
             $orderList = model('order')->alias('a')->join('order_refund b', 'a.id=b.order_id')->join('user c', 'a.user_id=c.id')->field('a.*, b.order_id, b.refund_money, b.create_time refund_time, b.remarks, b.status, c.username, c.phone')->where([
                 'a.shop_id' => SHOP_ID,
                 'a.is_apply_refund' => 1,
                 'b.status' => 0
             ])->select();
-        } catch (\Exception $e){
+        } catch (\Exception $e) {
             $orderList = [];
         }
         $this->assign('list', $orderList);
@@ -185,19 +188,19 @@ class Order extends ShopBase
             model('order_refund')->startTrans();
             $res = $order_refund->save(['status' => 1, 'money' => input('money')]);
             $res1 = $order_refund->refundOrder($order_no);
-            if($res && $res1){
-                pushMess('您申请的退款订单已同意', ['id'=>$order_refund['order_id'], 'url'=>'', 'scene'=>'order_refund'], ["registration_id"=>["$token"]]);
+            if ($res && $res1) {
+                pushMess('您申请的退款订单已同意', ['id' => $order_refund['order_id'], 'url' => '', 'scene' => 'order_refund'], ["registration_id" => ["$token"]]);
                 model('order_refund')->commit();
                 exit_json(1, '操作成功');
-            }else{
+            } else {
                 model('order_refund')->rollback();
                 exit_json(-1, '退款失败');
             }
         } elseif ($status == 0) {
-            pushMess('您申请的退款订单已拒绝，请联系客服。', ['id'=>$order_refund['order_id'], 'url'=>'', 'scene'=>'order_refund'], ["registration_id"=>["$token"]]);
+            pushMess('您申请的退款订单已拒绝，请联系客服。', ['id' => $order_refund['order_id'], 'url' => '', 'scene' => 'order_refund'], ["registration_id" => ["$token"]]);
             //拒绝退款
             $order_refund->save(['status' => 2, 'reason' => input('reason')]);
-            model('order')->save(['is_apply_refund' => 3, 'order_status'=>1], ['order_no' => $order_no]);
+            model('order')->save(['is_apply_refund' => 3, 'order_status' => 1], ['order_no' => $order_no]);
             exit_json(1, '操作成功');
         } else {
             exit_json(-1, '参数错误');
@@ -234,14 +237,14 @@ class Order extends ShopBase
     {
         $order_id = input('order_id');
         $order = model('order')->where('id', $order_id)->find();
-        if($order['is_send'] == 1){
+        if ($order['is_send'] == 1) {
             exit_json(-1, '订单已处理');
         }
         $res = $order->save(['is_send' => 1, 'send_time' => date('Y-m-d H:i:s')]);
         if ($res) {
             //添加发货通知
             $token = model('user')->where('id', $order['user_id'])->value('jiguangToken');
-            pushMess('您的订单已配送', ['id'=>$order_id, 'url'=>'' , 'scene'=>'order'], ["registration_id"=>["$token"]]);
+            pushMess('您的订单已配送', ['id' => $order_id, 'url' => '', 'scene' => 'order'], ["registration_id" => ["$token"]]);
 
             try {
                 $sixun = new SixunOpera();
@@ -315,6 +318,96 @@ class Order extends ShopBase
         } else {
             exit_json(-1, '订单已处理');
         }
+    }
+
+    /**
+     * 部分商品订单退款
+     */
+    public function refund_goods()
+    {
+        if (request()->isAjax()) {
+            $ids = input('ids');
+            $reason = input('reason');
+            $order_id = input('order_id');
+            $order_det = model('order_det')->whereIn('id', $ids)->select();
+            $order = model('order')->where('order_no', $order_id)->find();
+            $pay_type = $order['pay_type'];
+            $order['order_det'] = $order_det;
+            $money = 0;
+            $total = 0;
+            foreach ($order_det as $det) {
+                $money += $det['cost'] * $det['num'];
+                $total += $det['sale_price'] * $det['num'];
+            }
+            $sixun = new SixunOpera();
+            if ($order['is_send'] == 1) {
+                $sixun->writeOrder($order, 2);
+            }
+            $res = false;
+            $refund_config = [
+                'trade_no' => $order['trade_no'],
+                'refund_money' => $money,
+                'refund_reason' => $reason,
+                'refund_id' => md5(time() . rand(1000, 9999)),
+                'total_money' => $order['real_cost'],
+                'shop_id' => $order['shop_id']
+            ];
+            $user = model('user')->where('id', $order['user_id'])->find();
+            switch ($pay_type) {
+                case 1:
+                    //支付宝支付
+                    $ali = new AliPay();
+                    $res = $ali->refund($refund_config);
+                    break;
+                case 2:
+                    //微信支付
+                    $weixin = new WeiXinPay();
+                    $res = $weixin->refund($refund_config);
+                    break;
+
+                case 3:
+                    //余额支付
+                    $user = model('user')->where('id', $order['user_id'])->find();
+                    $card = $sixun->getCardInfo($user['card_id']);
+                    $res = model('user')->where('id', $order['user_id'])->setInc('cost', $money);
+                    //退款写入思迅余额
+                    $cost = $card['cost'] + $money;
+                    $sixun->set_residual_amt($cost, $user['card_id']);
+                    //退款写入思迅余额
+                    break;
+                default:
+                    exit_json(-1, '操作失败');
+            }
+
+            if ($res) {
+                model('order_det')->whereIn('id', $ids)->delete();
+                model('order')->save(['shop_total' => $order['shop_total'] - $total, 'shop_cost' => $order['shop_cost'] - $money, 'real_cost' => $order['real_cost'] - $money, 'remarks'=>$order['remarks'].$reason], ['order_no' => $order['order_no']]);
+
+                //订单退款
+                $moneyLog = new MoneyLog();
+                $moneyLog->writeLog($order['user_id'], $money, config('pay_type')[$order['pay_type']], '订单退款', $order['order_no']);
+                //退款冲减会员积分
+                $user->setDec('score', $money);
+                model('ScoreLog')->save([
+                    'score' => $money,
+                    'type' => 2,
+                    'user_id' => $order['user_id'],
+                    'desc' => '订单退款积分冲减'
+                ]);
+                $score = $card['acc_num'] - $money;
+                $sixun->set_core($score, $user['card_id']);
+                $token = $user['jiguangToken'];
+                pushMess('您的订单有新的变化', ['id' => $order['id'], 'url' => '', 'scene' => 'order'], ["registration_id" => ["$token"]]);
+                exit_json();
+            } else {
+                exit_json(-1, '退款失败');
+            }
+        }
+        $order_id = input('order_id');
+        $list = model('order_det')->where('order_no', $order_id)->select();
+        $this->assign('order_id', $order_id);
+        $this->assign('list', $list);
+        return $this->fetch();
     }
 
 }

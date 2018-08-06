@@ -77,10 +77,16 @@ class OrderDet extends Model
             $list = $this->where('order_no', $order_no)->select();
             try{
                 foreach ($list as $val){
+                    $good_id = $val['good_id'];
                     if($val['good_prop']>0){
-                        \model('goods_prop')->where(['id', $val['good_prop']])->setDec('num', $val['num']);
+                        \model('goods_prop')->where('id', $val['good_prop'])->setDec('num', $val['num']);
+                        $count = \model('goods_prop')->where(['good_id'=>$good_id, 'num'=>['gt', 0]])->count();
                     }else{
                         \model('goods')->where('id', $val['good_id'])->setDec('count', $val['num']);
+                        $count = \model('goods')->where('id', $good_id)->value('count');
+                    }
+                    if($count<=0){
+                        \model('goods')->where('id', $good_id)->setField('is_live', 0);
                     }
                 }
             }catch (\Exception $e){

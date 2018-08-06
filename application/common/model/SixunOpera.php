@@ -410,6 +410,7 @@ class SixunOpera
         }
         $card['vip_name'] = iconv('GBK', 'UTF-8', $card['vip_name']);
         $card['cost'] = $this->money_decode($card['residual_amt']);
+        $card['acc_num'] = $card['acc_num']-$card['dec_num'];
         return $card;
 
     }
@@ -463,9 +464,10 @@ class SixunOpera
     }*/
 
     //同步积分到思讯
-    function set_core($allScore, $card_id)
+    function set_core($allScore, $card_id, $branch_no)
     {
-        $back = $this->sqlserver->query("update t_rm_vip_consume set vip_acc_amount= $allScore where card_id='$card_id'");
+        Log::error("update t_rm_vip_consume set vip_acc_amount= $allScore where card_id='$card_id' and branch_no='$branch_no'");
+        $back = $this->sqlserver->query("update t_rm_vip_consume set vip_acc_amount= $allScore where card_id='$card_id' and branch_no='$branch_no'");
         if ($back) {
             return true;
         } else {
@@ -683,26 +685,33 @@ class SixunOpera
     /**
      * 添加会员卡消费信息
      */
-    public function addConsume($card_id)
+    public function addConsume($card_id, $branch_no)
     {
-        $sql = "insert into t_rm_vip_consume (card_id, branch_no) values ('$card_id', '002')";
+        $sql = "insert into t_rm_vip_consume (card_id, branch_no) values ('$card_id', '$branch_no')";
         $this->sqlserver->query($sql);
     }
 
-    public function setConsume($card_id, $min_num)
+    public function setConsume($card_id, $min_num, $branch_no)
     {
-        $sql = "update t_rm_vip_consume set vip_minus_total =vip_minus_total +$min_num where card_id='$card_id'";
+        $sql = "update t_rm_vip_consume set vip_minus_total =vip_minus_total +$min_num where card_id='$card_id' and branch_no='$branch_no'";
         $this->sqlserver->query($sql);
     }
 
     /**
      * 判断会员是否有消费
+     * @param $card_id
+     * @param string $branch_no
+     * @return array|bool|false|null
      */
-    public function getConsume($card_id)
+    public function getConsume($card_id, $branch_no="")
     {
-        $card = $this->sqlserver->getarr("select * from t_rm_vip_consume where card_id='$card_id'");
+        if($branch_no == ""){
+            $card = $this->sqlserver->select_one("select * from t_rm_vip_consume where card_id='$card_id'");
+        }else{
+            $card = $this->sqlserver->select_one("select * from t_rm_vip_consume where card_id='$card_id' and branch_no='$branch_no'");
+        }
         if($card){
-            return true;
+            return $card;
         }else{
             return false;
         }

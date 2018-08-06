@@ -60,8 +60,12 @@ $leftmenu = [
         'navName'=>'特殊商品管理',
         'navChild'=>[
             [
-                'navName'=>'称重商品管理',
-                'url'=>'Products/bulk_goods'
+                'navName'=>'新鲜水果管理',
+                'url'=>'Products/bulk_fruit'
+            ],
+            [
+                'navName'=>'新鲜蔬菜管理',
+                'url'=>'Products/bulk_other'
             ],
             [
                 'navName'=>'整箱、套装商品管理',

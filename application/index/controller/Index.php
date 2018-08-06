@@ -2,6 +2,7 @@
 namespace app\index\controller;
 
 use think\Controller;
+use think\Log;
 
 class Index extends Controller
 {
@@ -69,6 +70,35 @@ class Index extends Controller
         $res = db('web_about_us')->where('id', 1)->find();
         $this->assign('item', $res);
         return $this->fetch('register');
+    }
+
+    /**
+     * 下载注册信息
+     */
+    public function downloadRegist()
+    {
+        if(request()->isPost()){
+            $start_time = input('start_time');
+            $end_time = input('end_time');
+            $where['creattime'] = [
+                ['egt', strtotime($start_time)],
+                ['elt', strtotime($end_time . "+1 day")]
+            ];
+            $list = model('User')->field('phone, creattime, device')->where($where)->select();
+            $data = [];
+            foreach ($list as $l){
+                $t = [];
+                $t['phone'] = $l['phone'];
+                $t['create_time'] = $l['creattime'];
+                $t['device'] = $l['device'];
+                $data[] = $t;
+            }
+            $header = ['手机号', '注册时间', '设备类型'];
+            $file_name = "用户注册记录";
+            excel($header, $data, $file_name);
+            exit();
+        }
+        return $this->fetch();
     }
 
 }

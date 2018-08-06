@@ -133,6 +133,9 @@ class User extends BaseUser
      */
     public function setAddress()
     {
+        if(USER_ID == '3370'){
+            exit_json(-1, '请先到我的->设置中登录');
+        }
         $user_name = input('user_name');
         $user_telephone = input('user_telephone');
         $area_name = input('area_name');
@@ -348,6 +351,9 @@ class User extends BaseUser
      */
     public function chargeAccount()
     {
+        if(USER_ID == '3370'){
+            exit_json(-1, '请先到我的->设置中登录');
+        }
         $money = input('money');
         $given_money = input('given_money');
         $active_id = input('active_id') ? input('active_id') : 0;

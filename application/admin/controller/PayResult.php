@@ -37,6 +37,12 @@ class PayResult extends Controller
             $log_path = LOG_PATH . 'ali';
             if ($_POST['trade_status'] == 'TRADE_FINISHED') {
                 $is_refund = 0;
+            }elseif ($_POST['trade_status'] == 'TRADE_SUCCESS'){
+
+            }else{
+                Log::error("订单关闭");
+                echo 'SUCCESS';
+                exit();
             }
         } else {
             //微信支付来源

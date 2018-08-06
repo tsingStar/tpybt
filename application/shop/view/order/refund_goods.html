@@ -1,0 +1,74 @@
+﻿{include file='pub/header'/}
+<title>商品列表</title>
+</head>
+<body class="pos-r">
+    <div class="page-container">
+        <div class="mt-20">
+            <table class="table table-border table-bordered table-bg table-hover table-sort">
+                <thead>
+                <tr class="text-c">
+                    <th width="50"></th>
+                    <th width="60">商品名称</th>
+                    <th width="60">规格</th>
+                    <th width="30">原价</th>
+                    <th width="30">优惠价</th>
+                    <th width="30">数量</th>
+                </tr>
+                </thead>
+                <tbody>
+                {foreach $list as $item}
+                <tr class="text-c va-m">
+                    <td>
+                        <input type="checkbox" class="checkbox" value="{$item.id}"/>
+                    </td>
+                    <td>{$item.good_name}</td>
+                    <td>{$item.prop_name}</td>
+                    <td>{$item.sale_price}</td>
+                    <td>{$item.cost}</td>
+                    <td>{$item.num}</td>
+                </tr>
+                {/foreach}
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-20">
+            <button class="btn btn-primary radius" onclick="sure_refund()">确认退款选中商品</button>
+        </div>
+    </div>
+
+{include file='pub/footer'/}
+<script type="text/javascript">
+    /**
+     * 确认退款
+     */
+    function sure_refund() {
+        var a = new Array();
+        $.each($("input[type='checkbox']:checked"), function (i, v) {
+            a.push($(v).val());
+        });
+        if(a.length<=0){
+            layer.msg('请选择退款商品');
+            return false;
+        }
+        var ids = a.join(',');
+        layer.prompt({
+            formType: 2,
+            value: '',
+            title: '请输入退款原因'
+        }, function(value, index, elem){
+            $.post("{:url('Order/refund_goods')}", {ids:ids, reason:value, order_id:"{$order_id}"}, function (res) {
+                if(res.code == 1){
+                    layer.alert('退款成功', function () {
+                        parent.location.reload();
+                    });
+                }else{
+                    layer.msg(res.msg);
+                }
+            });
+            layer.close(index);
+        });
+    }
+
+</script>
+</body>
+</html>

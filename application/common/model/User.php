@@ -54,7 +54,7 @@ class User extends Model
         if($userInfo['card_id']){
             $sixun = new SixunOpera();
             $card = $sixun->getCardInfo($userInfo['card_id']);
-            $user['score'] = $card['acc_num']-$card['dec_num'];
+            $user['score'] = $card['acc_num'];
         }else{
             $user['score'] = $userInfo['score'];
         }
@@ -209,13 +209,17 @@ class User extends Model
         //积分字段 acc_num
         $user = $this->find(USER_ID);
         $sixunModel = new SixunOpera();
-        $cardInfo = $sixunModel->getCardInfo($user->getAttr('card_id'));
-        $acc_num = $cardInfo['acc_num']?$cardInfo['acc_num']:0;
-//        $acc_num = 0;
+        $card_id = $user->getAttr('card_id');
+        $consume_card = $sixunModel->getConsume($card_id);
+        if(!$consume_card){
+            $sixunModel->addConsume($user['card_id'], '002');
+            $consume_card = $sixunModel->getConsume($user['card_id'], '002');
+        }
+        $acc_num = $consume_card['vip_acc_amount'];
         $acc_num += $dayScore;
         $tod_score = $user->tod_score + $dayScore;
         //同步思迅会员积分
-        $sixunModel->set_core($acc_num, $cardInfo['card_id']);
+        $sixunModel->set_core($acc_num, $card_id, $consume_card['branch_no']);
         $user->save(['score' => $acc_num, 'tod_score' => $tod_score]);
     }
 

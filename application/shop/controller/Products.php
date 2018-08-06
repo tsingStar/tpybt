@@ -145,7 +145,7 @@ class Products extends ShopBase
             $extra['cate_id'] = $cateId;
         }
         $where = array_merge(['shop_id' => SHOP_ID], $extra);
-        $goodsList = model('goods')->where($where)->select();
+        $goodsList = model('goods')->where($where)->order('good_order desc')->select();
         $cat_list = model('shop_cate')->where('shop_id', SHOP_ID)->column('name', 'id');
 //        $active_list = db('active')->where('is_open', 1)->column('active_name', 'id');
 //        $active_list[0] = '普通商品';
@@ -378,7 +378,7 @@ class Products extends ShopBase
         $list = $cateModel->field('id, name, parent_id')->select();
         $cateTree = getTree($list, 0, 'parent_id');
         $pid = $cateModel->where('id', $product['cate_id'])->value('parent_id');
-        $prop = db('goods_prop')->where(['good_id'=>$product['id'], 'num'=>['gt', 0]])->select();
+        $prop = db('goods_prop')->where(['good_id' => $product['id'], 'num' => ['gt', 0]])->select();
         $active_list = db('active')->where('is_open', 1)->column('active_name', 'id');
         $this->assign('active_list', $active_list);
         $this->assign('prop', $prop);
@@ -441,7 +441,7 @@ class Products extends ShopBase
             $extra['gno'] = input('gno');
         }
         $where = array_merge(['shop_id' => SHOP_ID, 'bulk_package' => 1], $extra);
-        $goods_list = model('goods')->where($where)->select();
+        $goods_list = model('goods')->where($where)->order('good_order desc')->select();
         $cat_list = model('shop_cate')->where('shop_id', SHOP_ID)->column('name', 'id');
 
 //        $active_list = db('active')->where('is_open', 1)->column('active_name', 'id');
@@ -453,6 +453,89 @@ class Products extends ShopBase
         $this->assign('is_bulk', 1);
         return $this->fetch('plist');
     }
+
+    /**
+     * 新鲜水果
+     */
+    public function bulk_fruit()
+    {
+        $extra = [];
+        if (input('name')) {
+            $extra['name'] = ['like', "%" . input('name') . "%"];
+        }
+        if (input('gno')) {
+            $extra['gno'] = input('gno');
+        }
+        $cat_list = model('shop_cate')->where('shop_id', SHOP_ID)->column('name', 'id');
+        foreach ($cat_list as $key => $item) {
+            if ($item == '新鲜水果') {
+                $cate_id = $key;
+            }
+        }
+        if (isset($cate_id)) {
+            $extra['cate_id'] = $cate_id;
+        }
+        $where = array_merge(['shop_id' => SHOP_ID, 'bulk_package' => 1], $extra);
+        $goods_list = model('goods')->where($where)->order('good_order desc')->select();
+        $active_list = config('active');
+        $this->assign('active_list', $active_list);
+        $this->assign('cat_list', $cat_list);
+        $this->assign('goodsList', $goods_list);
+        $this->assign('is_bulk', 1);
+        return $this->fetch('plist');
+
+    }
+
+    /**
+     * 新鲜蔬菜
+     */
+    public function bulk_other()
+    {
+
+        $extra = [];
+        if (input('name')) {
+            $extra['name'] = ['like', "%" . input('name') . "%"];
+        }
+        if (input('gno')) {
+            $extra['gno'] = input('gno');
+        }
+        $cat_list = model('shop_cate')->where('shop_id', SHOP_ID)->column('name', 'id');
+        foreach ($cat_list as $key => $item) {
+            if ($item == '新鲜水果') {
+                $cate_id = $key;
+            }
+        }
+        if (isset($cate_id)) {
+            $extra['cate_id'] = ['neq', $cate_id];
+        }
+        $where = array_merge(['shop_id' => SHOP_ID, 'bulk_package' => 1], $extra);
+        $goods_list = model('goods')->where($where)->order('good_order desc')->select();
+        $active_list = config('active');
+        $this->assign('active_list', $active_list);
+        $this->assign('cat_list', $cat_list);
+        $this->assign('goodsList', $goods_list);
+        $this->assign('is_bulk', 1);
+        return $this->fetch('plist');
+
+    }
+
+    /**
+     * 设置商品排序
+     */
+    public function setOrder()
+    {
+        $good_id = input('id');
+        $num = input('num');
+        $data['good_order'] = $num;
+        $res = model('goods')->where('id', $good_id)->find()->save($data);
+        if ($res) {
+            exit_json();
+        } else {
+            exit_json(-1, '保存失败');
+        }
+
+    }
+
 
     /**
      * 称重商品
@@ -467,7 +550,7 @@ class Products extends ShopBase
             $extra['gno'] = input('gno');
         }
         $where = array_merge(['shop_id' => SHOP_ID, 'combine_sta' => 1], $extra);
-        $goods_list = model('goods')->where($where)->select();
+        $goods_list = model('goods')->where($where)->order('good_order desc')->select();
         $cat_list = model('shop_cate')->where('shop_id', SHOP_ID)->column('name', 'id');
 //        $active_list = db('active')->where('is_open', 1)->column('active_name', 'id');
 //        $active_list[0] = '普通商品';
@@ -732,6 +815,9 @@ class Products extends ShopBase
             $price = (double)substr($p, -6);
             $good = model('goods')->where('gno', $gno)->where('shop_id', SHOP_ID)->find();
             if (!$good) {
+                continue;
+            }
+            if ($good['bcost'] <= 0) {
                 continue;
             }
             $weight = round($price / $good['bcost']);

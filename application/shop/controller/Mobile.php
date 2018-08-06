@@ -11,8 +11,11 @@ namespace app\shop\controller;
 
 
 use app\common\model\Goods;
+use app\common\model\PayOrder;
+use app\common\model\RongYun;
 use app\common\model\SixunOpera;
 use think\Controller;
+use think\Log;
 
 class Mobile extends Controller
 {
@@ -57,6 +60,7 @@ class Mobile extends Controller
     {
         $telephone = input('telephone');
         $password = input('password');
+        $jiguangToken = input('jiguangToken');
         $shop = model('shop')->checkShop($telephone, $password);
         $data = [];
         if ($shop) {
@@ -64,14 +68,17 @@ class Mobile extends Controller
             $data['shop_name'] = $shop['shopname'];
             $data['role_id'] = 1;
             $data['shop_id'] = $shop['id'];
-
+            $data['shop_logo'] = $shop['shoplogo'];
+            model('shop')->save(['jiguangToken'=>$jiguangToken], ['id'=>$shop['id']]);
         } else {
-            $shop = model('employee')->alias('a')->join('shop b', 'a.shop_id=b.id')->field('a.*, b.shopname')->where(['a.telephone' => $telephone, 'a.password' => $password, 'a.status' => 1])->find();
+            $shop = model('employee')->alias('a')->join('shop b', 'a.shop_id=b.id')->field('a.*, b.shopname, b.shoplogo')->where(['a.telephone' => $telephone, 'a.password' => $password, 'a.status' => 1])->find();
             if ($shop) {
                 $data['id'] = $shop['id'];
                 $data['shop_name'] = $shop['shopname'];
                 $data['role_id'] = 0;
                 $data['shop_id'] = $shop['shop_id'];
+                $data['shop_logo'] = $shop['shoplogo'];
+                $shop->save(['jiguangToken'=>$jiguangToken]);
             }
         }
         if ($shop) {
@@ -95,7 +102,6 @@ class Mobile extends Controller
             'today' => $order_today
         ];
         exit_json(1, '请求成功', $data);
-
     }
 
     /**
@@ -103,7 +109,7 @@ class Mobile extends Controller
      */
     public function getShopInfo()
     {
-        $shop = model('shop')->alias('a')->join('shop_open_time b', 'a.id=b.shop_id')->where('id', $this->shop_id)->field('a.shopname shop_name, a.phone telephone, a.discount, a.address, b.open_time, b.close_time')->find();
+        $shop = model('shop')->alias('a')->join('shop_open_time b', 'a.id=b.shop_id')->where('id', $this->shop_id)->field('a.shopname shop_name, a.phone telephone, a.discount, a.address, b.open_time, b.close_time, a.location')->find();
         exit_json(1, '请求成功', $shop);
     }
 
@@ -151,6 +157,7 @@ class Mobile extends Controller
         if ($good) {
             $data['name'] = $good['name'];
             $data['gno'] = $good['gno'];
+            $data['bar_code'] = $bar_code;
             if ($flag) {
                 $data['prop'] = intval($price / $good['bcost'] * 1000) . 'g';
             } else {
@@ -204,21 +211,24 @@ class Mobile extends Controller
     {
         $type = input('type');
         $date = input('date');
-        $date_max = strtotime($date . '+1 day');
-        $date_min = strtotime($date);
-        $where['a.create_time'] = [
-            'between', [$date_min, $date_max]
-        ];
+        if ($date !== 'all') {
+            $date_max = strtotime($date . '+1 day');
+            $date_min = strtotime($date);
+            $where['a.create_time'] = [
+                'between', [$date_min, $date_max]
+            ];
+        }
         $where['a.shop_id'] = input('shop_id');
         $page = input('page');
         $pageNum = input('pageNum');
-        $offset = $page * $pageNum;
+        $offset = ($page - 1) * $pageNum;
         $list = [];
         $order_status = ['1' => '已完成', '2' => '待发货', '3' => '已发货', '4' => '已退款', '5' => '待退款', '6' => '已拒绝'];
         switch ($type) {
             case 1:
                 //已完成
                 $where['a.order_status'] = 2;
+                $where['a.is_apply_refund'] = 0;
                 $list = model('order')->alias('a')->where($where)->limit($offset, $pageNum)->select();
                 $num = model('order')->alias('a')->where($where)->count();
                 $total_money = model('order')->alias('a')->where($where)->sum('a.real_cost');
@@ -287,12 +297,15 @@ class Mobile extends Controller
             $temp['order_status'] = $order_status["$type"];
             $temp['pay_type'] = $l['pay_type'];
             $temp['dispatch_type'] = $l['dispatch_type'];
+            $temp['dispatch_time'] = $l['dispatch_time'];
             $temp['receiver_address'] = $l['receiver_address'];
             $temp['receiver_name'] = $l['receiver_name'];
             $temp['receiver_telephone'] = $l['receiver_telephone'];
             $temp['order_det'] = model('order_det')->where('order_no', $l['order_no'])->field('CONCAT(good_name,\'/\',prop_name) good_name, gno, sale_price, cost, num, cost*num total_money')->select();
+            $temp['shop_total'] = $l['shop_total'];
             $temp['shop_cost'] = $l['shop_cost'];
             $temp['real_cost'] = $l['real_cost'];
+            $temp['remarks'] = $l['remarks'];
             $temp['coupon_fee'] = $l['coupon_fee'];
             if ($l['is_apply_refund'] > 0) {
                 $temp['refund_apply_reason'] = $l['refund_apply_reason'];
@@ -327,7 +340,8 @@ class Mobile extends Controller
         $res = $order->save(['is_send' => 1, 'send_time' => date('Y-m-d H:i:s')]);
         if ($res) {
             //添加发货通知
-            pushMess('您的订单已配送', ['id' => $order_id, 'url' => '', 'scene' => 'order']);
+            $token = model('user')->where('id', $order['user_id'])->value('jiguangToken');
+            pushMess('您的订单已配送', ['id' => $order_id, 'url' => '', 'scene' => 'order'], ["registration_id" => ["$token"]]);
             try {
                 $sixun = new SixunOpera();
                 $order['order_det'] = model('order_det')->where('order_no', $order['order_no'])->select();
@@ -360,7 +374,9 @@ class Mobile extends Controller
             $res = $order_refund->save(['status' => 1, 'money' => input('money'), 'reason' => $reason]);
             $res1 = $order_refund->refundOrder($order_no);
             if ($res && $res1) {
-                pushMess('您申请的退款订单已同意', ['id' => $order_refund['order_id'], 'url' => '', 'scene' => 'order_refund']);
+                $order = model('order')->where('order_no', $order_no)->find();
+                $token = model('user')->where('id', $order['user_id'])->value('jiguangToken');
+                pushMess('您申请的退款订单已同意', ['id' => $order_refund['order_id'], 'url' => '', 'scene' => 'order_refund'], ["registration_id" => ["$token"]]);
                 model('order_refund')->commit();
                 exit_json(1, '操作成功');
             } else {
@@ -390,7 +406,7 @@ class Mobile extends Controller
         $list = $good->where([
             'shop_id' => $this->shop_id,
             'name' => ['like', "%$good_name%"]
-        ])->field('id, name, active_price, gno, count, goodattr, guige')->limit($page * $pageNum, $pageNum)->select();
+        ])->field('id, name, active_price, gno, count, goodattr, guige, is_live')->limit(($page - 1) * $pageNum, $pageNum)->select();
         $data = [];
         foreach ($list as $value) {
             $temp = $value;
@@ -415,7 +431,7 @@ class Mobile extends Controller
      */
     public function getDispatchArea()
     {
-        $areas = model('shop_dispatch_area')->where('shop_id', $this->shop_id)->select();
+        $areas = model('shop_dispatch_area')->where('shop_id', $this->shop_id)->order('id desc')->select();
         exit_json(1, '请求成功', $areas);
 
     }
@@ -426,14 +442,12 @@ class Mobile extends Controller
     public function delDispatchArea()
     {
         $address_id = input('address_id');
-        $res = model('shop_dispatch_area')->where(['id'=>$address_id, 'shop_id'=>$this->shop_id])->delete();
+        $res = model('shop_dispatch_area')->where(['id' => $address_id, 'shop_id' => $this->shop_id])->delete();
         if ($res) {
             exit_json();
         } else {
             exit_json(-1, '操作失败');
         }
-
-
     }
 
     /**
@@ -444,34 +458,205 @@ class Mobile extends Controller
         $area_name = input('area_name');
         $lat = input('lat');
         $lng = input('lng');
-        if(!$area_name || !$lat || !$lng){
+        if (!$area_name || !$lat || !$lng) {
             exit_json(-1, '参数不能为空');
         }
         $area = model('shop_dispatch_area')->where([
-            'shop_id'=>$this->shop_id,
-            'residential_name'=>$area_name,
-            'lat'=>$lat,
-            'lng'=>$lng
-            ])->find();
-        if($area){
-            exit_json();
-        }else{
+            'shop_id' => $this->shop_id,
+            'residential_name' => $area_name,
+            'lat' => $lat,
+            'lng' => $lng
+        ])->find();
+        if ($area) {
+            exit_json(-1, '地址已添加');
+        } else {
             $res = model('shop_dispatch_area')->save([
-                'shop_id'=>$this->shop_id,
-                'residential_name'=>$area_name,
-                'lat'=>$lat,
-                'lng'=>$lng
+                'shop_id' => $this->shop_id,
+                'residential_name' => $area_name,
+                'lat' => $lat,
+                'lng' => $lng
             ]);
-            if($res){
-                exit_json();
-            }else{
+            if ($res) {
+                $data = model('shop_dispatch_area')->where('id', model('shop_dispatch_area')->getLastInsID())->find();
+                exit_json(1, '添加成功', $data);
+            } else {
                 exit_json(-1, '添加失败');
             }
         }
-
-
-        
     }
 
+    /**
+     * 修改登陆密码
+     */
+    public function modifyPassword()
+    {
+        $old_password = input('old_password');
+        $new_password1 = input('new_password1');
+        $new_password2 = input('new_password2');
+        if ($new_password1 != $new_password2) {
+            exit_json(-1, '两次密码不同');
+        } else {
+            if (input('role_id') == 1) {
+                $shop = model('shop')->where('id', input('user_id'))->find();
+            } else {
+                $shop = model('employee')->where('id', input('user_id'))->find();
+            }
+            if ($shop->getAttr('password') != md5($old_password)) {
+                exit_json(-1, '密码错误');
+            } else {
+                $res = $shop->save(['password' => md5($new_password2)]);
+                if ($res) {
+                    exit_json(1, '修改成功');
+                } else {
+                    exit_json(-1, '修改失败');
+                }
+            }
+        }
+
+    }
+
+    /**
+     * 称重扫码
+     */
+    public function bulk_goods_scan()
+    {
+        $bar_code = input('bar_code');
+        $valid = substr($bar_code, 0, 2);
+        if ($valid == 22) {
+            $gno = substr($bar_code, 2, 5);
+            $price = (double)substr($bar_code, -6);
+        } else {
+            exit_json(-1, '条码格式不正确');
+        }
+        $good = model('goods')->where(['shop_id' => $this->shop_id, 'gno' => $gno])->find();
+        if ($good) {
+            $data['name'] = $good['name'];
+            $data['gno'] = $good['gno'];
+            $data['prop'] = intval($price / $good['bcost'] * 1000) . 'g';
+            $data['bar_code'] = $bar_code;
+            exit_json(1, '请求成功', $data);
+        } else {
+            exit_json(-1, '商品不存在');
+        }
+    }
+
+    /**
+     * 称重商品下架
+     */
+    public function bulk_down()
+    {
+        $bar_code = trim(input('bar_codes'));
+        if (!$bar_code) {
+            exit_json(-1, '条码不能为空');
+        }
+        $bar_code = explode(',', $bar_code);
+        $res = model('goods_prop')->whereIn('prop_no', $bar_code)->delete();
+        if ($res) {
+            exit_json();
+        } else {
+            exit_json(-1, '商品未上架或下架失败');
+        }
+    }
+
+    /**
+     * 称重商品上架
+     */
+    public function bulk_up()
+    {
+        $bar_code = input('bar_codes');
+        $bar_code = explode(',', $bar_code);
+        $discount = model('shop')->where('id', $this->shop_id)->value('discount');
+        $temp = [];
+        foreach ($bar_code as $code) {
+            $valid = substr($code, 0, 2);
+            if ($valid == 22) {
+                $gno = substr($code, 2, 5);
+                $price = (double)substr($code, -6);
+            } else {
+                continue;
+            }
+            $good = model('goods')->where(['shop_id' => $this->shop_id, 'gno' => $gno])->find();
+            if ($good) {
+                $data = [];
+                $data['good_id'] = $good['id'];
+                $data['prop_name'] = intval($price / $good['bcost'] * 1000) . 'g';
+                $data['prop_price'] = $price;
+                $data['prop_active_price'] = $price * $discount;
+                $data['num'] = 1;
+                $data['prop_no'] = $code;
+                $temp[] = $data;
+                $good->save(['is_live' => 1]);
+            } else {
+                continue;
+            }
+        }
+        $res = model('goods_prop')->saveAll($temp);
+        if ($res) {
+            exit_json();
+        } else {
+            exit_json(-1, '上架失败');
+        }
+    }
+
+    /**
+     * 获取组合商品
+     */
+    public function get_combine_goods()
+    {
+        $bar_code = input('bar_code');
+        $good_name = input('good_name');
+        if (!$good_name && !$bar_code) {
+            exit_json(-1, '参数不能为空', array());
+        }
+        //type  1条码  2 模糊查询
+        $type = input('type');
+        if ($type == 1) {
+            $good = model('goods')->where('gno', $bar_code)->where('shop_id', $this->shop_id)->where('combine_sta', 1)->field('id, gno, name, count, active_price, is_live')->find();
+        } elseif ($type == 2) {
+            $good = model('goods')->whereLike('name', "%$good_name%")->where('shop_id', $this->shop_id)->where('combine_sta', 1)->field('id, gno, name, count, active_price, is_live')->select();
+        } else {
+            exit_json(-1, '参数错误');
+        }
+        if ($good) {
+            exit_json(1, '请求成功', $good);
+        } else {
+            exit_json(-1, '条码不是组合商品条码');
+        }
+    }
+
+    /**
+     * 操作组合商品
+     */
+    public function opera_combine()
+    {
+        $good_id = input('good_id');
+        $num = input('num');
+        if($num<0){
+            exit_json(-1, '库存数量不能小于0');
+        }
+        $is_live = input('is_live');
+        $good = model('goods')->where('id', $good_id)->find();
+        $res = $good->save(['count' => $num, 'is_live' => $is_live]);
+        if ($res) {
+            exit_json();
+        } else {
+            exit_json(-1, '操作失败');
+        }
+    }
+
+    /**
+     * 获取token
+     */
+    public function getToken()
+    {
+        $shop = model('shop')->where('id', $this->shop_id)->find();
+        $token = $shop['rongyunToken'];
+        if (!$token) {
+            $rongyun = new RongYun();
+            $token = $rongyun->getToken('shop' . $this->shop_id, $shop['shopname'], $shop['shoplogo'] ? $shop['shoplogo'] : config('default_img'));
+            $shop->save(['rongyunToken' => $token]);
+        }
+        exit_json(1, '请求成功', ['token' => $token]);
+    }
 
 }

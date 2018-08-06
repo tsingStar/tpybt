@@ -49,7 +49,7 @@ class Pub extends Controller
      */
     public function getOnline()
     {
-        exit_json(1, '请求成功', ['userid' => "3262", 'code' => '0']);
+        exit_json(1, '请求成功', ['userid' => "3370", 'code' => '2']);
     }
 
     /**

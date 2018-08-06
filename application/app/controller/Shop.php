@@ -54,6 +54,12 @@ class Shop extends BaseUser
             if(!$lat || !$lng){
                 $shop = $shopModel->field('id, shopname, shoplogo, phone, address, create_time, location, limit_cost')->where('is_default', 'eq', 1)->find();
             }else{
+                //兼容IOS处理，测试账号删除购物车内所有数据
+                if(USER_ID == 3370){
+                    model('shopcart')->where('user_id', USER_ID)->delete();
+                }
+
+
                 $shopArr = $shopModel->field('id, shopname, shoplogo, phone, address, create_time, location, limit_cost')->where('enable', 'eq', 1)->select();
                 $t = 0;
                 $t_dis = 999999;
@@ -411,6 +417,7 @@ class Shop extends BaseUser
         $telephone = input('telephone');
         $remarks = input('remarks');
         $gift = db('gift')->where('id', $good_id)->find();
+        $branch_no = model('shop')->where('id', $gift['shop_id'])->value('fendian');
         if($gift['num']<=0){
             exit_json(-1, '库存不足');
         }else{
@@ -420,13 +427,13 @@ class Shop extends BaseUser
             try{
                 $user = model('user')->where('id', USER_ID)->find();
                 $sixun = new SixunOpera();
-                $cardInfo = $sixun->getCardInfo($user['card_id']);
-                if($cardInfo['acc_num']-$cardInfo['dec_num']<$gift['score']){
-                    exit_json(-1, '积分不足');
+                $consume_card = $sixun->getConsume($user['card_id'], $branch_no);
+
+                if(!$consume_card || $consume_card['vip_acc_amount']-$consume_card['vip_minus_total']<$gift['score']){
+                    exit_json(-1, '当前店铺下积分不足');
                 }else{
-//                    $res1 = $user->setDec('score', $gift['score']);
                     model('score_log')->save(['score'=>$gift['score'], 'type'=>2, 'user_id'=>USER_ID, 'desc'=>'积分兑换商品']);
-                    $sixun->setConsume($user['card_id'], $gift['score']);
+                    $sixun->setConsume($user['card_id'], $gift['score'], $branch_no);
                 }
                 $res = model('order_score')->save(['good_id'=>$good_id, 'address'=>$address, 'name'=>$name, 'telephone'=>$telephone,'remarks'=>$remarks, 'user_id'=>USER_ID, 'shop_id'=>$gift['shop_id']]);
             }catch (\Exception $e){
@@ -435,7 +442,7 @@ class Shop extends BaseUser
                 model('user')->rollback();
                 Log::error('积分兑换'.$e->getMessage());
             }
-            if($res && $res1){
+            if($res){
                 db('gift')->where('id', $good_id)->setDec('num', 1);
                 model('score_log')->commit();
                 model('order_score')->commit();

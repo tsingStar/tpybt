@@ -149,7 +149,7 @@ class Goods extends Model
     public function getRelationGoods($good_id)
     {
         $good = $this->where('id', $good_id)->find();
-        $relationGoods = $this->where('cate_id', $good['cate_id'])->order('sellcount desc')->limit(6)->select();
+        $relationGoods = $this->where(['cate_id'=>$good['cate_id'], 'is_live'=>1])->order('sellcount desc')->limit(6)->select();
         return $this->goodsFormat($relationGoods);
     }
 
