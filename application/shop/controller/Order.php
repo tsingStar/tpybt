@@ -386,16 +386,23 @@ class Order extends ShopBase
                 //订单退款
                 $moneyLog = new MoneyLog();
                 $moneyLog->writeLog($order['user_id'], $money, config('pay_type')[$order['pay_type']], '订单退款', $order['order_no']);
+
                 //退款冲减会员积分
-                $user->setDec('score', $money);
-                model('ScoreLog')->save([
-                    'score' => $money,
-                    'type' => 2,
-                    'user_id' => $order['user_id'],
-                    'desc' => '订单退款积分冲减'
-                ]);
-                $score = $card['acc_num'] - $money;
-                $sixun->set_core($score, $user['card_id']);
+                $scoreSet = model('ScoreSet')->find();
+                if($scoreSet['is_ratio_score'] == 1){
+                    $user->setDec('score', $this->getAttr('money'));
+                    model('ScoreLog')->save([
+                        'score'=>$money*$scoreSet['ratio_score'],
+                        'type'=>2,
+                        'user_id'=>$order['user_id'],
+                        'desc'=>'订单退款积分冲减'
+                    ]);
+                    $branch_no = model('shop')->where('id', SHOP_ID)->value('fendian');
+                    $consume_card = $sixun->getConsume($user['card_id'], $branch_no);
+                    $score = $consume_card['vip_acc_amount']-$money*$scoreSet['ratio_score'];
+                    $sixun->set_core($score, $user['card_id'], $branch_no);
+                }
+
                 $token = $user['jiguangToken'];
                 pushMess('您的订单有新的变化', ['id' => $order['id'], 'url' => '', 'scene' => 'order'], ["registration_id" => ["$token"]]);
                 exit_json();
