@@ -65,6 +65,7 @@
                     {if isset($is_com)}
                     <th width="100">商品库存</th>
                     {/if}
+                    <th width="100">商品排序</th>
                     <th width="60">是否首页推荐</th>
                     <!--<th width="60">是否为积分商品</th>-->
                     <th width="60">商品所属类别</th>
@@ -79,7 +80,7 @@
                     <td>{$good.gno}</td>
                     <td>
                         <a onClick="picture_show('查看图片', '{$good.img}')" data-src="" href="javascript:;">
-                            <img width="60" class="product-thumb" src="{:explode(',', $good['img'])[0]}">
+                            <img width="60" class="product-thumb lazy" data-original="{:explode(',', $good['img'])[0]}">
                         </a>
                     </td>
                     <td>
@@ -105,6 +106,12 @@
                         </span>
                     </td>
                     {/if}
+                    <td>
+                        <span>
+                        <input type="text" value="{$good.good_order}" class="input-text" style="width: 60px;"/>
+                        <button type="button" class="radius btn-primary btn" onclick="saveOrd(this, '{$good.id}')">保存</button>
+                        </span>
+                    </td>
                     <td class="is_recommend">
                         {if $good.is_recommend == 1}
                         是
@@ -167,14 +174,31 @@
 </div>
 
 {include file='pub/footer'/}
+<script src="__STATIC__/lib/jquery/jquery.lazyload.js"></script>
 <script type="text/javascript">
-    $('.table-sort').dataTable({
-        "aaSorting": [[1, "asc"]],//默认第几个排序
-        "bStateSave": false,//状态保存
-        "aoColumnDefs": [
-            {"orderable": false, "aTargets": [0, 11]}// 制定列不参与排序
-        ]
-    });
+    // $('.table-sort').dataTable({
+    //     "aaSorting": [[1, "asc"]],//默认第几个排序
+    //     "bStateSave": false,//状态保存
+    //     "aoColumnDefs": [
+    //         {"orderable": false, "aTargets": [0, 11]}// 制定列不参与排序
+    //     ]
+    // });
+
+    $(function () {
+        $("img.lazy").lazyload({threshold :180});
+    })
+
+    function saveOrd(o, good_id){
+        var num = $(o).prev('input').val();
+        $.post('{:url("setOrder")}', {id:good_id, num:num},function (res) {
+            if(res.code == 1){
+                layer.msg('操作成功');
+            }
+            setTimeout(function () {
+                //location.reload()
+            }, 888);
+        })
+    }
     
     function saveRem(o, good_id) {
         var num = $(o).prev('input').val();
@@ -253,7 +277,7 @@
                 }
                 layer.msg('修改成功');
             }else{
-                layer.msg('修改失败');
+                layer.msg(res.msg);
             }
         });
     }
@@ -374,10 +398,12 @@
                         layer.alert('添加失败', function(){
                             layer.closeAll();
                         });
+                    }else{
+                        layer.alert(res.msg, function(){
+                            layer.closeAll();
+                            location.reload();
+                        });
                     }
-                    layer.alert('成功添加'+res.msg+'个条码', function(){
-                        layer.closeAll();
-                    });
                 }, 'json');
             });
         }

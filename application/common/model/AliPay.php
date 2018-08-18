@@ -127,7 +127,7 @@ class AliPay
         $result = $this->aop->execute($request);
         $responseNode = str_replace(".", "_", $request->getApiMethodName()) . "_response";
         $resultCode = $result->$responseNode->code;
-        Log::error($responseNode);
+        Log::error('支付宝退款'.$responseNode);
         if (!empty($resultCode) && $resultCode == 10000) {
 //            echo "成功";
             return true;

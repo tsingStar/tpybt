@@ -251,6 +251,17 @@ class Pub extends Controller
         }
 //        $sql = "update ".Mysite::$app->config['tablepre'].'goods set count=count-'.$count.' where gno="'.$gno.'" and shopid='.$shopid;
         model('goods')->where(['gno' => $gno, 'shop_id' => $shopid])->setDec('count', $count);
+        $g = model('goods')->where('id', $good['id'])->find();
+        if($g['bulk_package'] == 1){
+            $num = model('goods_prop')->where('good_id', $good['id'])->where('num', 'gt', 0)->count();
+            if($num<=0){
+                $good->save(['is_live'=>0]);
+            }
+        }else{
+            if($g['count']<=0){
+                $good->save(['is_live'=>0]);
+            }
+        }
 //        $this->mysql->query($sql);
 
         exit(json_encode(array(
@@ -278,6 +289,27 @@ class Pub extends Controller
         exit;
         model('user')->saveAll($d['RECORDS']);
 
+    }
+
+    /**
+     * 获取广告位
+     */
+    public function getAdv()
+    {
+        $adv = model('AdvIndex')->order('create_time desc')->find();
+        if(!$adv){
+            exit_json(-1, '无广告');
+        }
+        if($adv['is_out'] == 0){
+            $out_url = __URL__.'/index/Index/adv/adv_id/'.$adv['id'];
+        }else{
+            $out_url = $adv['out_url'];
+        }
+        exit_json(1, '请求成功', [
+            'url'=>$out_url,
+            'image'=>__URL__.$adv['image'],
+            'time'=>$adv['time']
+        ]);
     }
 
 

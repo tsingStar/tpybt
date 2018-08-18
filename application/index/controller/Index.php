@@ -101,4 +101,20 @@ class Index extends Controller
         return $this->fetch();
     }
 
+    /**
+     * 广告
+     */
+    public function adv()
+    {
+        $adv_id = input('adv_id');
+        $adv = model('AdvIndex')->where('id', $adv_id)->find();
+        if($adv){
+            $this->assign('content', $adv['content']);
+            return $this->fetch();
+        }else{
+            exit('内容不存在');
+        }
+
+    }
+
 }

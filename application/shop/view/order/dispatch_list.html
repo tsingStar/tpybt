@@ -60,6 +60,10 @@
                            href="{:url('order_print', ['order_id'=>$item.id])}" target="_blank" title="打印小票">
                             <i class="Hui-iconfont">&#xe623;</i>打印小票
                         </a>
+                        {if ($item.pay_status == 1 && $item.is_apply_refund == 0)}
+                        <a href="javascript:;" class="ml-5" style="text-decoration: none;"
+                           onclick="refund_order('{$item.order_no}')"><i class="Hui-iconfont Hui-iconfont-edit"></i>商品退货处理</a>
+                        {/if}
                         {if $item.is_send != 1}
                         <a style="text-decoration:none" class="ml-5" onClick="send(this,'{$item.id}')"
                            href="javascript:;">
@@ -92,6 +96,10 @@
         ],
     });*/
 
+    function refund_order(order_id) {
+        layer_show('订单商品', "{:url('Order/refund_goods')}?order_id=" + order_id);
+    }
+
     //订单详情
     function order_detail(order_id) {
         layer_show('订单详情', "{:url('Order/order_detail')}?order_id=" + order_id);
@@ -113,15 +121,14 @@
     $(function () {
         setInterval(function () {
             $.post("{:url('getNewOrder')}", null, function (res) {
-                if(res.code == 1){
+                if (res.code == 1) {
                     document.getElementById('tips').play();
                     setTimeout(function () {
                         location.reload();
-                    }, 10000);
+                    }, 3000);
                 }
             });
-
-        }, 5000);
+        }, 40000);
     })
 
 </script>

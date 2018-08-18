@@ -28,15 +28,20 @@ class Order extends BaseController
 //        $where['create_time'] = ['gt', strtotime(date('Y-m-d'))];
 //        $order_list = $order->where($where)->select();
 //        $this->assign('list', $order_list);
+        $shop_list = model('Shop')->select();
+        $this->assign('shop_list', $shop_list);
         if (request()->isPost()) {
             $order = model('order');
             $where = [];
             if (input('searchKey') && input('searchValue')) {
-                $where[input('a.searchKey')] = input('searchValue');
+                $where[input('searchKey')] = input('searchValue');
             }
 
             if (input('order_status') !== "") {
                 $where['a.order_status'] = input('order_status');
+            }
+            if (input('shop_id') !== "") {
+                $where['a.shop_id'] = input('shop_id');
             }
             if (input('start_time')) {
                 $where['a.create_time'] = ['egt', strtotime(input('start_time'))];
@@ -227,7 +232,8 @@ class Order extends BaseController
      */
     public function todayList()
     {
-
+        $shop_list = model('Shop')->select();
+        $this->assign('shop_list', $shop_list);
         $order = model('order');
         $where = [];
         if (input('searchKey') && input('searchValue')) {

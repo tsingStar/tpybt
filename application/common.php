@@ -90,6 +90,10 @@ function addAdminOperaLog()
  */
 function exit_json($code = 1, $msg = "操作成功", $data = null)
 {
+    if (is_null($data)) {
+        $data = new \stdClass();
+
+    }
     header('Content-Type:application/json');
     exit(json_encode(['code' => $code, 'msg' => $msg, 'data' => $data]));
 }
@@ -307,5 +311,14 @@ function get_millisecond()
     $msec = round($usec * 1000);
     return $msec;
 
+}
+
+/**
+ * Excel一键导出
+ */
+function excel($header, $data, $filename)
+{
+    $error = \Excel::export($header, $data, $filename, '2007');
+    return $error;
 }
 

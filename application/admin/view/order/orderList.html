@@ -11,12 +11,19 @@
             <form action="" method="post">
                 查询类型：
                 <select name="searchKey" style="width:auto" class="select-box">
-                    <option value="">未选择</option>
-                    <option value="order_no">订单编号</option>
-                    <option value="receive_name">收货人姓名</option>
+                    <option value="">--未选择--</option>
+                    <option value="a.order_no">订单编号</option>
+                    <option value="a.receive_name">收货人姓名</option>
                 </select>
                 查询条件：
                 <input type="text" name="searchValue" style="width:250px" class="input-text"/>
+                店铺名称：
+                <select name="shop_id" style="width:auto" class="select-box">
+                    <option value="">--请选择--</option>
+                    {foreach $shop_list as $shop}
+                    <option value="{$shop.id}">{$shop['shopname']}</option>
+                    {/foreach}
+                </select>
                 订单状态：
                 <select name="order_status" style="width: auto;" class="select-box">
                     <option value="">全部</option>

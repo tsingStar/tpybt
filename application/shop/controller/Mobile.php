@@ -229,7 +229,7 @@ class Mobile extends Controller
                 //已完成
                 $where['a.order_status'] = 2;
                 $where['a.is_apply_refund'] = 0;
-                $list = model('order')->alias('a')->where($where)->limit($offset, $pageNum)->select();
+                $list = model('order')->alias('a')->where($where)->limit($offset, $pageNum)->order('a.create_time desc')->select();
                 $num = model('order')->alias('a')->where($where)->count();
                 $total_money = model('order')->alias('a')->where($where)->sum('a.real_cost');
                 break;
@@ -239,7 +239,7 @@ class Mobile extends Controller
                 $where['a.pay_status'] = 1;
                 $where['a.is_send'] = 0;
                 $where['a.is_apply_refund'] = 0;
-                $list = model('order')->alias('a')->where($where)->limit($offset, $pageNum)->select();
+                $list = model('order')->alias('a')->where($where)->limit($offset, $pageNum)->order('a.create_time desc')->select();
                 $num = model('order')->alias('a')->where($where)->count();
                 $total_money = model('order')->alias('a')->where($where)->sum('a.real_cost');
                 break;
@@ -249,7 +249,7 @@ class Mobile extends Controller
                 $where['a.pay_status'] = 1;
                 $where['a.is_send'] = 1;
                 $where['a.is_apply_refund'] = 0;
-                $list = model('order')->alias('a')->where($where)->limit($offset, $pageNum)->select();
+                $list = model('order')->alias('a')->where($where)->limit($offset, $pageNum)->order('a.create_time desc')->select();
                 $num = model('order')->alias('a')->where($where)->count();
                 $total_money = model('order')->alias('a')->where($where)->sum('a.real_cost');
                 break;
@@ -259,7 +259,7 @@ class Mobile extends Controller
                 $where['a.pay_status'] = 1;
                 $where['a.is_apply_refund'] = 2;
                 $where['b.status'] = 1;
-                $list = model('order')->alias('a')->join('order_refund b', 'a.id=b.order_id', 'left')->field('a.*, b.remarks refund_apply_reason, b.create_time refund_apply_time, b.refund_money apply_money, b.money refund_money, b.reason refund_reason, b.update_time refund_time')->where($where)->limit($offset, $pageNum)->select();
+                $list = model('order')->alias('a')->join('order_refund b', 'a.id=b.order_id', 'left')->field('a.*, b.remarks refund_apply_reason, b.create_time refund_apply_time, b.refund_money apply_money, b.money refund_money, b.reason refund_reason, b.update_time refund_time')->where($where)->limit($offset, $pageNum)->order('a.create_time desc')->select();
                 $num = model('order')->alias('a')->join('order_refund b', 'a.id=b.order_id', 'left')->where($where)->count();
                 $total_money = model('order')->alias('a')->join('order_refund b', 'a.id=b.order_id', 'left')->where($where)->sum('a.real_cost');
                 break;
@@ -269,7 +269,7 @@ class Mobile extends Controller
                 $where['a.pay_status'] = 1;
                 $where['a.is_apply_refund'] = 1;
                 $where['b.status'] = 0;
-                $list = model('order')->alias('a')->join('order_refund b', 'a.id=b.order_id', 'left')->field('a.*, b.remarks refund_apply_reason, b.create_time refund_apply_time, b.refund_money apply_money, b.money refund_money, b.reason refund_reason, b.update_time refund_time')->where($where)->limit($offset, $pageNum)->select();
+                $list = model('order')->alias('a')->join('order_refund b', 'a.id=b.order_id', 'left')->field('a.*, b.remarks refund_apply_reason, b.create_time refund_apply_time, b.refund_money apply_money, b.money refund_money, b.reason refund_reason, b.update_time refund_time')->where($where)->limit($offset, $pageNum)->order('a.create_time desc')->select();
                 $num = model('order')->alias('a')->join('order_refund b', 'a.id=b.order_id', 'left')->where($where)->count();
                 $total_money = model('order')->alias('a')->join('order_refund b', 'a.id=b.order_id', 'left')->where($where)->sum('a.real_cost');
                 break;
@@ -279,7 +279,7 @@ class Mobile extends Controller
                 $where['a.pay_status'] = 1;
                 $where['a.is_apply_refund'] = 3;
                 $where['b.status'] = 2;
-                $list = model('order')->alias('a')->join('order_refund b', 'a.id=b.order_id', 'left')->field('a.*, b.remarks refund_apply_reason, b.create_time refund_apply_time, b.refund_money apply_money, b.money refund_money, b.reason refund_reason, b.update_time refund_time')->where($where)->limit($offset, $pageNum)->select();
+                $list = model('order')->alias('a')->join('order_refund b', 'a.id=b.order_id', 'left')->field('a.*, b.remarks refund_apply_reason, b.create_time refund_apply_time, b.refund_money apply_money, b.money refund_money, b.reason refund_reason, b.update_time refund_time')->where($where)->limit($offset, $pageNum)->order('a.create_time desc')->select();
                 $num = model('order')->alias('a')->join('order_refund b', 'a.id=b.order_id', 'left')->where($where)->count();
                 $total_money = model('order')->alias('a')->join('order_refund b', 'a.id=b.order_id', 'left')->where($where)->sum('a.real_cost');
                 break;

@@ -69,25 +69,26 @@ class Goods extends Model
         $good['instro'] = $good_arr['instro'];
         //处理默认规格显示
         $good['guige'] = '规格';
-        if ($good_arr['have_det'] == 1) {
+//        if ($good_arr['have_det'] == 1) {
             $props = $this->getGoodsProp($good_arr['id']);
             if (count($props)) {
                 $good['sale_price'] = $props[0]['prop_price'];
                 $good['active_price'] = $props[0]['prop_active_price'];
                 $good['guige'] = '规格';
-            }
-        } else {
-            $props = [
-                [
+            }else{
+                $props = [
+                    [
 //                    prop_id, prop_name, prop_active_price, prop_price, num
-                    'prop_id' => 0,
-                    'prop_name' => $good_arr['guige']?$good_arr['guige']:$good_arr['goodattr'],
-                    'prop_active_price' => $good_arr['active_price'],
-                    'prop_price' => $good_arr['sale_price'],
-                    'num' => $good_arr['count']
-                ]
-            ];
-        }
+                        'prop_id' => 0,
+                        'prop_name' => $good_arr['guige']?$good_arr['guige']:$good_arr['goodattr'],
+                        'prop_active_price' => $good_arr['active_price'],
+                        'prop_price' => $good_arr['sale_price'],
+                        'num' => $good_arr['count']
+                    ]
+                ];
+            }
+//        } else {
+//        }
 
         $good['prop'] = $props;
 //        $good['have_det'] = $good_arr['have_det'];

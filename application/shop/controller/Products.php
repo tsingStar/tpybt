@@ -257,6 +257,17 @@ class Products extends ShopBase
     {
         $good_id = input('good_id');
         $code = input('code');
+        $good = model('goods')->where('id', $good_id)->find();
+        if($good['bulk_package'] == 1){
+            $num = model('goods_prop')->where('good_id', $good_id)->where('num', 'gt', 0)->count();
+            if($num<1){
+                exit_json(-1, '称重商品无规格不可以上架');
+            }
+        }else{
+            if($good['count']<=0){
+                exit_json(-1,'商品库存不足，禁止上架');
+            }
+        }
         $res = model('goods')->save(['is_live' => $code], ['id' => $good_id]);
         if ($res) {
             exit_json();
@@ -803,21 +814,26 @@ class Products extends ShopBase
         $propArr = explode("\n", $props);
         $count = 0;
         $flag = true;
+        $error_str = "";
         foreach ($propArr as $p) {
             $valid = substr($p, 0, 2);
             if ($valid != 22) {
+                $error_str .= $p.'、';
                 continue;
             }
             $gno = substr($p, 2, 5);
             if ($gno == '') {
+                $error_str .= $p.'、';
                 continue;
             }
             $price = (double)substr($p, -6);
             $good = model('goods')->where('gno', $gno)->where('shop_id', SHOP_ID)->find();
             if (!$good) {
+                $error_str .= $p.'、';
                 continue;
             }
             if ($good['bcost'] <= 0) {
+                $error_str .= $p.'、';
                 continue;
             }
             $weight = round($price / $good['bcost']);
@@ -828,14 +844,15 @@ class Products extends ShopBase
             $good_props = new GoodsProp();
             $res = $good_props->isUpdate(false)->save(['good_id' => $good['id'], 'prop_name' => $weight . 'g', 'prop_price' => $price, 'num' => 1, 'prop_no' => $p, 'prop_active_price' => $active_price]);
             if ($res) {
-                model('goods')->save(['have_det' => 1, 'is_live' => 1], ['id' => $good['id']]);
+//                model('goods')->save(['have_det' => 1, 'is_live' => 1], ['id' => $good['id']]);
+                $good->save(['have_det' => 1, 'is_live' => 1]);
                 $count++;
             } else {
                 $flag = false;
             }
         }
         if ($flag) {
-            exit_json(1, $count);
+            exit_json(1, '成功添加'.$count.'个条码，其中异常条码有'.$error_str);
         } else {
             exit_json(-1, '操作失败');
         }
