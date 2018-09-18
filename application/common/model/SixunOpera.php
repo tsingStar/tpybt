@@ -466,7 +466,7 @@ class SixunOpera
     //同步积分到思讯
     function set_core($allScore, $card_id, $branch_no)
     {
-        Log::error("update t_rm_vip_consume set vip_acc_amount= $allScore where card_id='$card_id' and branch_no='$branch_no'");
+     //   Log::error("update t_rm_vip_consume set vip_acc_amount= $allScore where card_id='$card_id' and branch_no='$branch_no'");
         $back = $this->sqlserver->query("update t_rm_vip_consume set vip_acc_amount= $allScore where card_id='$card_id' and branch_no='$branch_no'");
         if ($back) {
             return true;

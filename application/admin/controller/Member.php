@@ -27,17 +27,17 @@ class Member extends BaseController
         $end_time = strtotime(input('maxtime'));
         $uname = input('uname');
         $where = [];
-        if($start_time && !$end_time){
+        if ($start_time && !$end_time) {
             $where['creattime'] = ['egt', $start_time];
-        }else if(!$start_time && $end_time){
+        } else if (!$start_time && $end_time) {
             $where['creattime'] = ['elt', $end_time];
-        }else if($start_time && $end_time){
+        } else if ($start_time && $end_time) {
             $where['creattime'] = [
                 ['egt', $start_time],
                 ['elt', $end_time]
             ];
         }
-        if($uname){
+        if ($uname) {
             $where['phone|username'] = $uname;
         }
         $userList = model('user')->where($where)->order('creattime desc')->select();
@@ -52,10 +52,10 @@ class Member extends BaseController
     {
         $id = input('id');
         $enable = input('enable');
-        $res = model('user')->save(['status'=>$enable], ['id'=>$id]);
-        if($res){
+        $res = model('user')->save(['status' => $enable], ['id' => $id]);
+        if ($res) {
             exit_json(1, '更新成功');
-        }else{
+        } else {
             exit_json(1, '更新失败');
         }
     }
@@ -85,13 +85,70 @@ class Member extends BaseController
      */
     public function accountList()
     {
-        $where = [];
+        $start_time = strtotime(input('mintime'));
+        $end_time = strtotime(input('maxtime'));
         $uname = input('uname');
-        if($uname){
+        $where = [];
+        if ($start_time && !$end_time) {
+            $where['a.create_time'] = ['egt', $start_time];
+        } else if (!$start_time && $end_time) {
+            $where['a.create_time'] = ['elt', $end_time + 86400];
+        } else if ($start_time && $end_time) {
+            $where['a.create_time'] = [
+                ['egt', $start_time],
+                ['elt', $end_time + 86400]
+            ];
+        }
+        if ($uname) {
             $where['b.phone|b.username'] = $uname;
         }
-        $list = model('money_log')->alias('a')->join('user b', 'a.user_id=b.id')->field('a.*, b.username, b.phone')->where($where)->order('create_time desc')->select();
+        $list = model('money_log')->alias('a')->join('user b', 'a.user_id=b.id')->field('a.*, b.username, b.phone')->where($where)->where('a.type="余额" or a.desc LIKE "会员充值%"')->order('create_time desc')->select();
         $this->assign('list', $list);
+        return $this->fetch();
+    }
+
+    /**
+     * 下载余额变动日志
+     */
+    public function downloadAccount()
+    {
+        if (request()->isPost()) {
+            $start_time = strtotime(input('start_time'));
+            $end_time = strtotime(input('end_time') . "+1 day");
+//            $where['a.create_time'] = [
+//                ['egt', $start_time],
+//                ['elt', $end_time]
+//            ];
+//            $where["a.type"] = "余额";
+//            $where["a.desc"] = ["like", "%会员充值"];
+//            $list = model('MoneyLog')->alias('a')->join('user b', 'a.user_id=b.id')->field('b.username, b.phone, a.create_time, a.type, a.desc, a.money, a.amount')->where($where)->order('a.create_time desc')->select();
+            $list = db()->query('select b.username, b.phone, a.create_time, a.type, a.desc, a.money, a.amount FROM ybt_money_log a left join ybt_user b on a.user_id=b.id WHERE (a.type="余额" or a.desc LIKE "会员充值%") and a.create_time>='.$start_time.' and a.create_time<='.$end_time);
+            $header = [
+                '会员名',
+                '手机号',
+                '操作时间',
+                '账户类型',
+                '内容',
+                '变动金额',
+                '当前余额',
+                ''
+            ];
+            $data = [];
+            foreach ($list as $item) {
+                $t = [
+                    $item['username'],
+                    $item['phone'],
+                    $item['create_time'],
+                    $item['type'],
+                    $item['desc'],
+                    $item['money'],
+                    $item['amount']
+                ];
+                $data[] = $t;
+            }
+            \Excel::export($header, $data, date('Y-m'));
+            exit;
+        }
         return $this->fetch();
     }
 

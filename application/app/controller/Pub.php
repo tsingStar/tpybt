@@ -44,6 +44,11 @@ class Pub extends Controller
         exit($res);
     }
 
+    public function checkOk()
+    {
+        exit_json();
+    }
+
     /**
      * 获取上线状态--针对IOS上架处理
      */

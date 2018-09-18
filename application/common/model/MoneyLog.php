@@ -36,7 +36,8 @@ class MoneyLog extends Model
             'money'=>$money,
             'type'=>$type,
             'desc'=>$desc,
-            'order_no'=>$order_no
+            'order_no'=>$order_no,
+            'amount'=>\model('User')->where('id', $user_id)->value('cost')
         ];
         $this->save($data);
     }

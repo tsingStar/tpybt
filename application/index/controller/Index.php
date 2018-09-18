@@ -8,7 +8,9 @@ class Index extends Controller
 {
     public function index()
     {
-        return $this->fetch('404');
+
+
+        return $this->fetch();
     }
 
     public function report()

@@ -44,7 +44,7 @@ class ChargeOrder extends Model
             $sixun->set_residual_amt($money, $user['card_id']);
             //添加金额变动记录
             $moneyLog = new MoneyLog();
-            $moneyLog->writeLog($order['user_id'], $order['money'], config('pay_type')[$order['pay_type']], '会员充值，赠送金额'.$order['given_money'].'元', $order['order_no']);
+            $moneyLog->writeLog($order['user_id'], $order['money'], config('pay_type')[$pay_type], '会员充值，赠送金额'.$order['given_money'].'元', $order['order_no']);
             MoneyLogMonth::addLog($order['user_id'], date('Y-m'), $order['money']+$order['given_money'], 'add');
         }
     }

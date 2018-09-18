@@ -2,12 +2,19 @@
 <title>账户变动日志</title>
 </head>
 <body>
-<nav class="breadcrumb">{$breadNav} <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px"
-                                       href="javascript:location.replace(location.href);" title="刷新"><i
-        class="Hui-iconfont">&#xe68f;</i></a></nav>
+<nav class="breadcrumb">{$breadNav}
+    <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新">
+        <i class="Hui-iconfont">&#xe68f;</i>
+    </a>
+</nav>
 <div class="page-container">
     <form action="" method="get">
-        <div class="text-c">
+        <div class="text-c">注册日期：
+            <input type="text" onfocus="WdatePicker({maxDate:'#F{ $dp.$D(\'datemax\')}'})" id="datemin" name="mintime"
+                   class="input-text Wdate" style="width:120px;">
+            -
+            <input type="text" onfocus="WdatePicker({minDate:'#F{ $dp.$D(\'datemin\')}'})" id="datemax" name="maxtime"
+                   class="input-text Wdate" style="width:120px;">
             <input type="text" class="input-text" style="width:250px" placeholder="输入会员/手机号名称" name="uname">
             <button type="submit" class="btn btn-success" id="" name=""><i class="Hui-iconfont">&#xe665;</i> 搜会员
             </button>
@@ -15,6 +22,7 @@
     </form>
     <div class="cl pd-5 bg-1 bk-gray mt-20">
 		<span class="l">
+            <button class="btn btn-primary radius" onclick="downloadCharge()">下载日志</button>
 		</span>
     </div>
     <table class="table table-border table-bordered table-bg">
@@ -29,6 +37,7 @@
             <th>操作账户</th>
             <th>操作内容</th>
             <th>变动数量</th>
+            <th>操作后余额</th>
         </thead>
         <tbody>
         {foreach $list as $v}
@@ -39,6 +48,7 @@
             <td>{$v.type}</td>
             <td>{$v.desc}</td>
             <td>{$v.money}</td>
+            <td>{$v.amount}</td>
         </tr>
         {/foreach}
         </tbody>
@@ -51,6 +61,13 @@
     $(function () {
         $("table").dataTable();
     })
+
+    /**
+     * 下载日志
+     */
+    function downloadCharge(){
+        layer_show('选择日期', "{:url('downloadAccount')}", '500', '300');
+    }
 </script>
 </body>
 </html>

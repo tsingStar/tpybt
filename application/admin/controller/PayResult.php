@@ -51,7 +51,9 @@ class PayResult extends Controller
             $_POST = simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA);
             $log_path = LOG_PATH . 'weixin';
         }
-        @mkdir($log_path);
+        if(!is_dir($log_path)){
+            mkdir($log_path);
+        }
         file_put_contents($log_path . DS . date('Y-m-d') . '.txt', date('H:m:s') . json_encode($_POST) . '\n', FILE_APPEND);
         if (isset($is_refund) || $_POST['result_code'] == 'SUCCESS') {
             $validRes = $pay->validate($pay_type);
